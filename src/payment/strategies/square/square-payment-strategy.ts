@@ -61,29 +61,41 @@ export default class SquarePaymentStrategy extends PaymentStrategy {
 
         const paymentName = payment.methodId;
 
-        return new Promise<NonceInstrument>((resolve, reject) => {
-            if (!this._paymentForm) {
-                throw new NotInitializedError(NotInitializedErrorType.PaymentNotInitialized);
-            }
-
-            if (this._deferredRequestNonce) {
-                this._deferredRequestNonce.reject(new TimeoutError());
-            }
-
-            this._deferredRequestNonce = { resolve, reject };
-            this._paymentForm.requestCardNonce();
-        })
-        .then(paymentData => {
+        if ((payment.paymentData as NonceInstrument).nonce) {
             const paymentPayload = {
                 methodId: paymentName,
-                paymentData,
+                paymentData: {nonce: (payment.paymentData as NonceInstrument).nonce},
             };
 
             return this._store.dispatch(this._orderActionCreator.submitOrder(order, options))
-                .then(() =>
-                    this._store.dispatch(this._paymentActionCreator.submitPayment(paymentPayload))
-                );
-        });
+            .then(() =>
+                this._store.dispatch(this._paymentActionCreator.submitPayment(paymentPayload))
+            );
+        } else {
+            return new Promise<NonceInstrument>((resolve, reject) => {
+                if (!this._paymentForm) {
+                    throw new NotInitializedError(NotInitializedErrorType.PaymentNotInitialized);
+                }
+
+                if (this._deferredRequestNonce) {
+                    this._deferredRequestNonce.reject(new TimeoutError());
+                }
+
+                this._deferredRequestNonce = { resolve, reject };
+                this._paymentForm.requestCardNonce();
+            })
+            .then(paymentData => {
+                const paymentPayload = {
+                    methodId: paymentName,
+                    paymentData,
+                };
+
+                return this._store.dispatch(this._orderActionCreator.submitOrder(order, options))
+                    .then(() =>
+                        this._store.dispatch(this._paymentActionCreator.submitPayment(paymentPayload))
+                    );
+            });
+        }
     }
 
     private _getFormOptions(options: PaymentInitializeOptions, deferred: DeferredPromise): SquareFormOptions {
