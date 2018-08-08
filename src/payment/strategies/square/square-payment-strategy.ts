@@ -207,7 +207,7 @@ export default class SquarePaymentStrategy extends PaymentStrategy {
             'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
           },
           body: toFormUrlEncoded({
-              nonce: { nonce },
+              nonce,
               cardData: JSON.stringify(cardData),
           }),
         };
