@@ -64,7 +64,7 @@ export default class SquarePaymentStrategy extends PaymentStrategy {
         if ((payment.paymentData as NonceInstrument).nonce) {
             const paymentPayload = {
                 methodId: paymentName,
-                paymentData: {nonce: (payment.paymentData as NonceInstrument).nonce},
+                paymentData: {token: (payment.paymentData as NonceInstrument).nonce},
             };
 
             return this._store.dispatch(this._orderActionCreator.submitOrder(order, options))
