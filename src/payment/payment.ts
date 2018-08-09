@@ -4,7 +4,7 @@ export default interface Payment {
     paymentData: PaymentInstrument & PaymentInstrumentMeta;
 }
 
-export type PaymentInstrument = CreditCardInstrument | NonceInstrument | VaultedInstrument | CryptogramInstrument | TokenInstrument;
+export type PaymentInstrument = CreditCardInstrument | NonceInstrument | VaultedInstrument | CryptogramInstrument;
 
 export interface PaymentInstrumentMeta {
     deviceSessionId?: string;
@@ -43,8 +43,4 @@ export interface CryptogramInstrument {
     };
     ccNumber: string;
     accountMask: string;
-}
-
-export interface TokenInstrument {
-    token: string;
 }

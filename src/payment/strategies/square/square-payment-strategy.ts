@@ -213,7 +213,7 @@ export default class SquarePaymentStrategy extends PaymentStrategy {
         };
 
         return this._requestSender.post(url, options);
-      }
+    }
 }
 
 export interface DeferredPromise {
