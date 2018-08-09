@@ -47,6 +47,10 @@ export default class SquarePaymentStrategy extends PaymentStrategy {
     }
 
     initialize(options: PaymentInitializeOptions): Promise<InternalCheckoutSelectors> {
+        const { methodId } = options;
+
+        return this._store.dispatch(this._paymentMethodActionCreator.loadPaymentMethod(methodId))
+            .then(state => {
         return this._scriptLoader.load()
             .then(createSquareForm =>
                 new Promise((resolve, reject) => {
@@ -57,6 +61,7 @@ export default class SquarePaymentStrategy extends PaymentStrategy {
                     this._paymentForm.build();
                 }))
             .then(() => super.initialize(options));
+            });
     }
 
     execute(payload: OrderRequestBody, options?: PaymentRequestOptions): Promise<InternalCheckoutSelectors> {
@@ -85,6 +90,7 @@ export default class SquarePaymentStrategy extends PaymentStrategy {
                 methodId: paymentName,
                 paymentData,
             };
+            console.log('Aqui ando2');
 
             return this._store.dispatch(this._orderActionCreator.submitOrder(order, options))
                 .then(() =>
@@ -124,6 +130,7 @@ export default class SquarePaymentStrategy extends PaymentStrategy {
                 },
                 cardNonceResponseReceived: (errors: NonceGenerationError[] | undefined, nonce: string, cardData: CardData | undefined,
                                             billingContact: Contact | undefined, shippingContact: Contact | undefined) => {
+                    console.log('Ya llegue');
                     if (!cardData) {
                         if (errors) {
                             this._handleNonceGenerationErrors(errors);
