@@ -21,16 +21,16 @@ import { OrderActionCreator, OrderActionType } from '../../../order';
 import { getOrderRequestBody } from '../../../order/internal-orders.mock';
 import { getPaymentMethodsState, getSquare } from '../../../payment/payment-methods.mock';
 import createPaymentStrategyRegistry from '../../create-payment-strategy-registry';
+import { NonceInstrument } from "../../payment";
 import { PaymentActionType} from '../../payment-actions';
 import PaymentMethod from '../../payment-method';
 import PaymentMethodActionCreator from '../../payment-method-action-creator';
 import PaymentStrategyActionCreator from '../../payment-strategy-action-creator';
+import { PaymentStrategyActionType } from '../../payment-strategy-actions';
 
 import SquarePaymentForm, {CardBrand, CardData, DigitalWalletType, SquareFormCallbacks, SquareFormElement, SquareFormOptions } from './square-form';
 import SquarePaymentStrategy, { SquarePaymentInitializeOptions } from './square-payment-strategy';
 import SquareScriptLoader from './square-script-loader';
-import { PaymentStrategyActionType } from '../../payment-strategy-actions';
-import {NonceInstrument} from "../../payment";
 
 describe('SquarePaymentStrategy', () => {
     let callbacks: SquareFormCallbacks;
@@ -150,225 +150,222 @@ describe('SquarePaymentStrategy', () => {
         (squareForm.build as jest.Mock).mockClear();
     });
 
-    // describe('#initialize()', () => {
-    //     describe('when form loads successfully', () => {
-    //         it('loads script when initializing strategy with required params', async () => {
-    //             const initOptions = {
-    //                 methodId: paymentMethod.id,
-    //                 square: squareOptions,
-    //             };
+    describe('#initialize()', () => {
+        describe('when form loads successfully', () => {
+            it('loads script when initializing strategy with required params', async () => {
+                const initOptions = {
+                    methodId: paymentMethod.id,
+                    square: squareOptions,
+                };
 
-    //             await strategy.initialize(initOptions);
+                await strategy.initialize(initOptions);
 
-    //             expect(scriptLoader.load).toHaveBeenCalledTimes(1);
-    //         });
+                expect(scriptLoader.load).toHaveBeenCalledTimes(1);
+            });
 
-    //         it('fails to initialize when widget config is missing', async () => {
-    //             try {
-    //                 await strategy.initialize({ methodId: paymentMethod.id });
-    //             } catch (error) {
-    //                 expect(error.type).toEqual('invalid_argument');
-    //             }
-    //         });
-    //     });
+            it('fails to initialize when widget config is missing', async () => {
+                try {
+                    await strategy.initialize({ methodId: paymentMethod.id });
+                } catch (error) {
+                    expect(error.type).toEqual('invalid_argument');
+                }
+            });
+        });
 
-    // describe('when form fails to load', () => {
-    //     beforeEach(() => {
-    //         jest.spyOn(squareForm, 'build').mockImplementation(() => {
-    //             if (callbacks.unsupportedBrowserDetected) {
-    //                 callbacks.unsupportedBrowserDetected();
-    //             }
-    //         });
-    //     });
+        describe('when form fails to load', () => {
+            beforeEach(() => {
+                jest.spyOn(squareForm, 'build').mockImplementation(() => {
+                    if (callbacks.unsupportedBrowserDetected) {
+                        callbacks.unsupportedBrowserDetected();
+                    }
+                });
+            });
 
-    //     afterEach(() => (squareForm.build as any).mockRestore());
+            afterEach(() => (squareForm.build as any).mockRestore());
 
-    //     it('rejects the promise', () => {
-    //         const initOptions = {
-    //             methodId: paymentMethod.id,
-    //             square: squareOptions,
-    //         };
+            it('rejects the promise', () => {
+                const initOptions = {
+                    methodId: paymentMethod.id,
+                    square: squareOptions,
+                };
 
-    //         strategy.initialize(initOptions)
-    //             .catch(e => expect(e.type).toEqual('unsupported_browser'));
+                strategy.initialize(initOptions)
+                    .catch(e => expect(e.type).toEqual('unsupported_browser'));
 
-    //         expect(scriptLoader.load).toHaveBeenCalledTimes(1);
-    //         expect(squareForm.build).toHaveBeenCalledTimes(0);
-    //     });
-    // });
-    // });
-
-    // describe('#execute()', async () => {
-    //     const payload = {
-    //         payment: {
-    //             methodId: 'foo',
-    //         },
-    //     };
-
-    //     describe('when form has not been initialized', () => {
-    //         it('rejects the promise', () => {
-    //             strategy.execute(payload)
-    //                 .catch(e => expect(e.type).toEqual('not_initialized'));
-
-    //             expect(squareForm.requestCardNonce).toHaveBeenCalledTimes(0);
-    //         });
-    //     });
-
-    //     describe('when the form has been initialized', () => {
-    //         beforeEach(async () => {
-    //             const initOptions = {
-    //                 methodId: paymentMethod.id,
-    //                 square: squareOptions,
-    //             };
-
-    //             await strategy.initialize(initOptions);
-    //         });
-
-    //         it('fails if payment name is not passed', () => {
-    //             try {
-    //                 strategy.execute({});
-    //             } catch (error) {
-    //                 expect(error).toBeInstanceOf(MissingDataError);
-    //                 expect(squareForm.requestCardNonce).toHaveBeenCalledTimes(0);
-    //             }
-    //         });
-
-    //         it('requests the nonce', () => {
-    //             strategy.execute(payload);
-    //             expect(squareForm.requestCardNonce).toHaveBeenCalledTimes(1);
-    //         });
-
-    //         it('cancels the first request when a newer is made', () => {
-    //             strategy.execute(payload).catch(e => expect(e).toBeInstanceOf(TimeoutError));
-
-    //             setTimeout(() => {
-    //                 if (callbacks.cardNonceResponseReceived) {
-    //                     callbacks.cardNonceResponseReceived(null, 'nonce', cardData, undefined, undefined);
-    //                 }
-    //             }, 0);
-
-    //             strategy.execute(payload);
-    //         });
-
-    // it('resolves to what is returned by submitPayment', async () => {
-    //     const value = await promise;
-
-    //     expect(value).toEqual(store.getState());
-    // });
-
-    //             // it('submits the payment  with the right arguments', () => {
-    //             //     expect(paymentActionCreator.submitPayment).toHaveBeenCalledWith({
-    //             //         methodId: 'square',
-    //             //         paymentData: {
-    //             //             nonce: 'nonce',
-    //             //         },
-    //             //     });
-    //             // });
-    //         });
-
-    //         describe('when a failure happens receiving the nonce', () => {
-    //             let promise: Promise<InternalCheckoutSelectors>;
-
-    //             beforeEach(() => {
-    //                 promise = strategy.execute(payload);
-
-    //                 if (callbacks.cardNonceResponseReceived) {
-    //                     callbacks.cardNonceResponseReceived(null, 'nonce', cardData, undefined, undefined);
-    //                 }
-    //             });
-
-    //             it('does not place the order', () => {
-    //                 expect(orderActionCreator.submitOrder).toHaveBeenCalledTimes(0);
-    //                 expect(store.dispatch).not.toHaveBeenCalledWith(submitOrderAction);
-    //             });
-
-    //             it('does not submit payment', () => {
-    //                 expect(paymentActionCreator.submitPayment).toHaveBeenCalledTimes(0);
-    //             });
-
-    //             it('rejects the promise', async () => {
-    //                 try {
-    //                     await promise;
-    //                 } catch (e) {
-    //                     expect(e).toBeTruthy();
-    //                 }
-    //             });
-    //         });
-    //    });
-    // });
+                expect(scriptLoader.load).toHaveBeenCalledTimes(1);
+                expect(squareForm.build).toHaveBeenCalledTimes(0);
+            });
+        });
+    });
 
     describe('#execute()', async () => {
-        describe('when the nonce is received', async () => {
-            const payload = {
-                payment: {
-                    methodId: 'foo',
-                    paymentData: {
-                        nonce: 'nonce',
-                    },
-                },
-                order: {
-                    id: 'id',
-                },
-            };
+        const payload = {
+            payment: {
+                methodId: 'foo',
+            },
+        };
 
-            const options: PaymentInitializeOptions = {
-                methodId: '',
-                square:  {
-                    cardNumber: {
-                        elementId: '',
-                    },
-                    cvv: {
-                        elementId: '',
-                    },
-                    expirationDate: {
-                        elementId: '',
-                    },
-                    postalCode: {
-                        elementId: '',
-                    },
-                    onPaymentSelect: () => { return; },
-                },
+        describe('when form has not been initialized', () => {
+            it('rejects the promise', () => {
+                strategy.execute(payload)
+                    .catch(e => expect(e.type).toEqual('not_initialized'));
 
-            };
+                expect(squareForm.requestCardNonce).toHaveBeenCalledTimes(0);
+            });
+        });
 
+        describe('when the form has been initialized', () => {
             beforeEach(async () => {
                 const initOptions = {
                     methodId: paymentMethod.id,
                     square: squareOptions,
                 };
 
-                const widgetInteractionAction = Observable.of(createAction(PaymentStrategyActionType.WidgetInteractionStarted));
-                jest.spyOn(paymentStrategyActionCreator, 'widgetInteraction').mockImplementation(() => widgetInteractionAction);
-                jest.spyOn(checkoutActionCreator, 'loadCurrentCheckout');
-                jest.spyOn(paymentMethodActionCreator, 'loadPaymentMethod');
+                await strategy.initialize(initOptions);
+            });
 
-                await strategy.initialize(options);
-                // await strategy.execute(payload);
+            // it('fails if payment name is not passed', () => {
+            //     try {
+            //         strategy.execute({});
+            //     } catch (error) {
+            //         expect(error).toBeInstanceOf(MissingDataError);
+            //         expect(squareForm.requestCardNonce).toHaveBeenCalledTimes(0);
+            //     }
+            // });
+
+            // it('requests the nonce', () => {
+            //     strategy.execute(payload);
+            //     expect(squareForm.requestCardNonce).toHaveBeenCalledTimes(1);
+            // });
+
+            // it('cancels the first request when a newer is made', () => {
+            //     strategy.execute(payload).catch(e => expect(e).toBeInstanceOf(TimeoutError));
+
+            //     setTimeout(() => {
+            //         if (callbacks.cardNonceResponseReceived) {
+            //             callbacks.cardNonceResponseReceived(null, 'nonce', cardData, undefined, undefined);
+            //         }
+            //     }, 0);
+
+            //     strategy.execute(payload);
+            // });
+
+            // it('resolves to what is returned by submitPayment', async () => {
+            //     const value = await promise;
+
+            //     expect(value).toEqual(store.getState());
+            // });
+
+            // it('submits the payment  with the right arguments', () => {
+            //     expect(paymentActionCreator.submitPayment).toHaveBeenCalledWith({
+            //         methodId: 'square',
+            //         paymentData: {
+            //             nonce: 'nonce',
+            //         },
+            //     });
+            // });
+        });
+
+        describe('when a failure happens receiving the nonce', () => {
+            let promise: Promise<InternalCheckoutSelectors>;
+
+            beforeEach(() => {
+                promise = strategy.execute(payload);
+
                 if (callbacks.cardNonceResponseReceived) {
                     callbacks.cardNonceResponseReceived(null, 'nonce', cardData, undefined, undefined);
                 }
             });
 
-            // it('places the order with the right arguments', async () => {
-            //     await expect(orderActionCreator.submitOrder).toHaveBeenCalledWith({ useStoreCredit: true }, options);
-            //     await expect(store.dispatch).toHaveBeenCalledWith(submitOrderAction);
+            // it('does not place the order', () => {
+            //     expect(orderActionCreator.submitOrder).toHaveBeenCalledTimes(0);
+            //     expect(store.dispatch).not.toHaveBeenCalledWith(submitOrderAction);
             // });
 
-            it('calls submit order with the order request information', async () => {
+            // it('does not submit payment', () => {
+            //     expect(paymentActionCreator.submitPayment).toHaveBeenCalledTimes(0);
+            // });
 
-                await strategy.execute(payload, options);
+            // it('rejects the promise', async () => {
+            //     try {
+            //         await promise;
+            //     } catch (e) {
+            //         expect(e).toBeTruthy();
+            //     }
+            // });
+        });
 
-                const { order, payment } = payload;
-                const expectOrder = { order };
-
-                const paymentPayload = {
-                    methodId: payment.methodId,
-                    paymentData: {nonce: (payment.paymentData as NonceInstrument).nonce},
+        describe('#execute()', async () => {
+            describe('when the nonce is received', async () => {
+                const payload = {
+                    payment: {
+                        methodId: 'foo',
+                        paymentData: {
+                            nonce: 'nonce',
+                        },
+                    },
+                    order: {
+                        id: 'id',
+                    },
                 };
 
-                expect(orderActionCreator.submitOrder).toHaveBeenCalledWith(expectOrder, options);
-                expect(store.dispatch).toHaveBeenCalledWith(submitOrderAction);
-                expect(paymentActionCreator.submitPayment).toHaveBeenCalledWith(paymentPayload);
+                const options: PaymentInitializeOptions = {
+                    methodId: '',
+                    square:  {
+                        cardNumber: {
+                            elementId: '',
+                        },
+                        cvv: {
+                            elementId: '',
+                        },
+                        expirationDate: {
+                            elementId: '',
+                        },
+                        postalCode: {
+                            elementId: '',
+                        },
+                        onPaymentSelect: () => { return; },
+                    },
+                };
+
+                beforeEach(async () => {
+                    const initOptions = {
+                        methodId: paymentMethod.id,
+                        square: squareOptions,
+                    };
+
+                    const widgetInteractionAction = Observable.of(createAction(PaymentStrategyActionType.WidgetInteractionStarted));
+                    jest.spyOn(paymentStrategyActionCreator, 'widgetInteraction').mockImplementation(() => widgetInteractionAction);
+                    jest.spyOn(checkoutActionCreator, 'loadCurrentCheckout');
+                    jest.spyOn(paymentMethodActionCreator, 'loadPaymentMethod');
+
+                    await strategy.initialize(options);
+                    if (callbacks.cardNonceResponseReceived) {
+                        callbacks.cardNonceResponseReceived(null, 'nonce', cardData, undefined, undefined);
+                    }
+                });
+
+                // it('places the order with the right arguments', async () => {
+                //     await expect(orderActionCreator.submitOrder).toHaveBeenCalledWith({ useStoreCredit: true }, options);
+                //     await expect(store.dispatch).toHaveBeenCalledWith(submitOrderAction);
+                // });
+
+                it('calls submit order with the order request information', async () => {
+
+                    await strategy.execute(payload, options);
+
+                    const { order, payment } = payload;
+                    const expectOrder = { order };
+
+                    const paymentPayload = {
+                        methodId: payment.methodId,
+                        paymentData: {nonce: (payment.paymentData as NonceInstrument).nonce},
+                    };
+
+                    expect(orderActionCreator.submitOrder).toHaveBeenCalledWith(expectOrder, options);
+                    expect(store.dispatch).toHaveBeenCalledWith(submitOrderAction);
+                    expect(paymentActionCreator.submitPayment).toHaveBeenCalledWith(paymentPayload);
+                });
             });
         });
     });
