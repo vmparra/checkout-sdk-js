@@ -21,16 +21,16 @@ import { OrderActionCreator, OrderActionType } from '../../../order';
 import { getOrderRequestBody } from '../../../order/internal-orders.mock';
 import { getPaymentMethodsState, getSquare } from '../../../payment/payment-methods.mock';
 import createPaymentStrategyRegistry from '../../create-payment-strategy-registry';
+import {NonceInstrument} from '../../payment';
 import { PaymentActionType} from '../../payment-actions';
 import PaymentMethod from '../../payment-method';
 import PaymentMethodActionCreator from '../../payment-method-action-creator';
 import PaymentStrategyActionCreator from '../../payment-strategy-action-creator';
+import { PaymentStrategyActionType } from '../../payment-strategy-actions';
 
 import SquarePaymentForm, {CardBrand, CardData, DigitalWalletType, SquareFormCallbacks, SquareFormElement, SquareFormOptions } from './square-form';
 import SquarePaymentStrategy, { SquarePaymentInitializeOptions } from './square-payment-strategy';
 import SquareScriptLoader from './square-script-loader';
-import { PaymentStrategyActionType } from '../../payment-strategy-actions';
-import {NonceInstrument} from "../../payment";
 
 describe('SquarePaymentStrategy', () => {
     let callbacks: SquareFormCallbacks;
@@ -61,7 +61,8 @@ describe('SquarePaymentStrategy', () => {
                 callbacks.paymentFormLoaded({} as SquarePaymentForm);
             }
         },
-        requestCardNonce: () => {},
+        requestCardNonce: () => {
+        },
     };
 
     const squareOptions = {
@@ -143,8 +144,7 @@ describe('SquarePaymentStrategy', () => {
             .mockReturnValue(Promise.resolve(formFactory));
 
         jest.spyOn(squareForm, 'build');
-        jest.spyOn(squareForm, 'requestCardNonce')
-            .mockReturnValue(Promise.resolve());
+        jest.spyOn(squareForm, 'requestCardNonce');
 
         (scriptLoader.load as jest.Mock).mockClear();
         (squareForm.build as jest.Mock).mockClear();
@@ -343,18 +343,13 @@ describe('SquarePaymentStrategy', () => {
                 jest.spyOn(paymentMethodActionCreator, 'loadPaymentMethod');
 
                 await strategy.initialize(options);
-                // await strategy.execute(payload);
+            });
+
+            it('calls submit order with the order request information for masterpass', async () => {
+
                 if (callbacks.cardNonceResponseReceived) {
                     callbacks.cardNonceResponseReceived(null, 'nonce', cardData, undefined, undefined);
                 }
-            });
-
-            // it('places the order with the right arguments', async () => {
-            //     await expect(orderActionCreator.submitOrder).toHaveBeenCalledWith({ useStoreCredit: true }, options);
-            //     await expect(store.dispatch).toHaveBeenCalledWith(submitOrderAction);
-            // });
-
-            it('calls submit order with the order request information', async () => {
 
                 await strategy.execute(payload, options);
 
@@ -369,6 +364,42 @@ describe('SquarePaymentStrategy', () => {
                 expect(orderActionCreator.submitOrder).toHaveBeenCalledWith(expectOrder, options);
                 expect(store.dispatch).toHaveBeenCalledWith(submitOrderAction);
                 expect(paymentActionCreator.submitPayment).toHaveBeenCalledWith(paymentPayload);
+            });
+
+            it('calls submit order with the order request information for credit card', async () => {
+                cardData.digital_wallet_type = DigitalWalletType.none;
+
+                const payload = {
+                    payment: {
+                        methodId: 'foo',
+                        paymentData: { instrumentId: 'none' },
+                    },
+                    order: {
+                        id: 'id',
+                    },
+                    useStoreCredit: true,
+                };
+                const { order, payment } = payload;
+                const expectOrder = { order, useStoreCredit: true };
+
+                const paymentPayload = {
+                    methodId: payment.methodId,
+                    paymentData: { nonce: 'nonce' },
+                };
+
+                const promise: Promise<InternalCheckoutSelectors> = strategy.execute(payload, options);
+
+                if (callbacks.cardNonceResponseReceived) {
+                    callbacks.cardNonceResponseReceived(null, 'nonce', cardData, undefined, undefined);
+                }
+
+                await promise.then(() => {
+                    expect(orderActionCreator.submitOrder).toHaveBeenCalledTimes(1);
+                    expect(store.dispatch).toHaveBeenCalledTimes(3);
+                    expect(orderActionCreator.submitOrder).toHaveBeenCalledWith(expectOrder, options);
+                    expect(store.dispatch).toHaveBeenCalledWith(submitOrderAction);
+                    expect(paymentActionCreator.submitPayment).toHaveBeenCalledWith({ methodId: 'foo', paymentData: { nonce: 'nonce' }});
+                });
             });
         });
     });
