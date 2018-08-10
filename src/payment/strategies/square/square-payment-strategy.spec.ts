@@ -201,7 +201,7 @@ describe('SquarePaymentStrategy', () => {
     describe('#execute()', async () => {
         const payload = {
             payment: {
-                methodId: 'foo',
+                methodId: 'square',
                 paymentData: {
                     nonce: 'nonce',
                 },
@@ -210,11 +210,6 @@ describe('SquarePaymentStrategy', () => {
                 id: 'id',
             },
         };
-        // const payload = {
-        //     payment: {
-        //         methodId: 'foo',
-        //     },
-        // };
 
         describe('when form has not been initialized', () => {
             // it('rejects the promise', () => {
@@ -226,23 +221,23 @@ describe('SquarePaymentStrategy', () => {
         });
 
         describe('when the form has been initialized', () => {
-            // beforeEach(async () => {
-            //     const initOptions = {
-            //         methodId: paymentMethod.id,
-            //         square: squareOptions,
-            //     };
+            beforeEach(async () => {
+                const initOptions = {
+                    methodId: paymentMethod.id,
+                    square: squareOptions,
+                };
 
-            //     await strategy.initialize(initOptions);
-            // });
+                await strategy.initialize(initOptions);
+            });
 
-            // it('fails if payment name is not passed', () => {
-            //     try {
-            //         strategy.execute({});
-            //     } catch (error) {
-            //         expect(error).toBeInstanceOf(MissingDataError);
-            //         expect(squareForm.requestCardNonce).toHaveBeenCalledTimes(0);
-            //     }
-            // });
+            it('fails if payment name is not passed', () => {
+                try {
+                    strategy.execute({});
+                } catch (error) {
+                    expect(error).toBeInstanceOf(MissingDataError);
+                    expect(squareForm.requestCardNonce).toHaveBeenCalledTimes(0);
+                }
+            });
 
             // it('requests the nonce', () => {
             //     strategy.execute(payload);
@@ -267,14 +262,20 @@ describe('SquarePaymentStrategy', () => {
             //     expect(value).toEqual(store.getState());
             // });
 
-            // it('submits the payment  with the right arguments', () => {
-            //     expect(paymentActionCreator.submitPayment).toHaveBeenCalledWith({
-            //         methodId: 'square',
-            //         paymentData: {
-            //             nonce: 'nonce',
-            //         },
-            //     });
-            // });
+            it('submits the payment  with the right arguments', async () => {
+                const initOptions = {
+                    methodId: paymentMethod.id,
+                    square: squareOptions,
+                };
+
+                await strategy.execute(payload, initOptions);
+                expect(paymentActionCreator.submitPayment).toHaveBeenCalledWith({
+                    methodId: 'square',
+                    paymentData: {
+                        nonce: 'nonce',
+                    },
+                });
+            });
         });
 
         describe('when a failure happens receiving the nonce', () => {
