@@ -31,6 +31,7 @@ import { PaymentStrategyActionType } from '../../payment-strategy-actions';
 import SquarePaymentForm, {CardBrand, CardData, DigitalWalletType, SquareFormCallbacks, SquareFormElement, SquareFormOptions } from './square-form';
 import SquarePaymentStrategy, { SquarePaymentInitializeOptions } from './square-payment-strategy';
 import SquareScriptLoader from './square-script-loader';
+import { PromiseObservable } from '../../../../node_modules/rxjs/observable/PromiseObservable';
 
 describe('SquarePaymentStrategy', () => {
     let callbacks: SquareFormCallbacks;
@@ -224,11 +225,13 @@ describe('SquarePaymentStrategy', () => {
         });
 
         describe('when the form has been initialized', () => {
+            let promise: Promise<InternalCheckoutSelectors>;
             beforeEach(async () => {
                 const initOptions = {
                     methodId: paymentMethod.id,
                     square: squareOptions,
                 };
+                promise = strategy.initialize(initOptions);
 
                 await strategy.initialize(initOptions);
             });
@@ -274,11 +277,11 @@ describe('SquarePaymentStrategy', () => {
             //     strategy.execute(payload);
             // });
 
-            // it('resolves to what is returned by submitPayment', async () => {
-            //     const value = await promise;
-
-            //     expect(value).toEqual(store.getState());
-            // });
+            // Works by Manco
+            it('resolves to what is returned by submitPayment', async () => {
+                const value = await promise;
+                expect(value).toEqual(store.getState());
+            });
 
             // Works
             // it('submits the payment  with the right arguments', async () => {
