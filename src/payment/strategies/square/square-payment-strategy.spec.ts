@@ -4,7 +4,7 @@ import { createRequestSender } from '@bigcommerce/request-sender';
 import { createScriptLoader } from '@bigcommerce/script-loader';
 import { Observable } from 'rxjs';
 
-import { PaymentActionCreator, PaymentInitializeOptions, PaymentRequestOptions, PaymentRequestSender } from '../..';
+import { PaymentActionCreator, PaymentInitializeOptions, PaymentRequestSender } from '../..';
 import {
     createCheckoutClient,
     createCheckoutStore,
@@ -15,10 +15,9 @@ import {
 } from '../../../checkout';
 import CheckoutActionCreator from '../../../checkout/checkout-action-creator';
 import { getCheckoutStoreState } from '../../../checkout/checkouts.mock';
-import { InvalidArgumentError, MissingDataError, TimeoutError } from '../../../common/error/errors';
+import { TimeoutError } from '../../../common/error/errors';
 import { ConfigActionCreator, ConfigRequestSender } from '../../../config';
 import { OrderActionCreator, OrderActionType } from '../../../order';
-import { getOrderRequestBody } from '../../../order/internal-orders.mock';
 import { getPaymentMethodsState, getSquare } from '../../../payment/payment-methods.mock';
 import createPaymentStrategyRegistry from '../../create-payment-strategy-registry';
 import { NonceInstrument } from '../../payment';
@@ -28,7 +27,7 @@ import PaymentMethodActionCreator from '../../payment-method-action-creator';
 import PaymentStrategyActionCreator from '../../payment-strategy-action-creator';
 import { PaymentStrategyActionType } from '../../payment-strategy-actions';
 
-import SquarePaymentForm, {CardBrand, CardData, DigitalWalletType, SquareFormCallbacks, SquareFormElement, SquareFormOptions } from './square-form';
+import SquarePaymentForm, {CardBrand, CardData, DigitalWalletType, SquareFormCallbacks, SquareFormOptions } from './square-form';
 import SquarePaymentStrategy, { SquarePaymentInitializeOptions } from './square-payment-strategy';
 import SquareScriptLoader from './square-script-loader';
 
@@ -416,12 +415,9 @@ describe('SquarePaymentStrategy', () => {
                         },
                         useStoreCredit: true,
                     };
-                    const { order, payment } = payload;
+                    const { order } = payload;
                     const expectOrder = { order, useStoreCredit: true };
-                    const paymentPayload = {
-                        methodId: payment.methodId,
-                        paymentData: { nonce: 'nonce' },
-                    };
+
                     const promise: Promise<InternalCheckoutSelectors> = strategy.execute(payload, options);
                     if (callbacks.cardNonceResponseReceived) {
                         callbacks.cardNonceResponseReceived(null, 'nonce', cardData, undefined, undefined);

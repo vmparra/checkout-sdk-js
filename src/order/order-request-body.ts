@@ -1,5 +1,5 @@
 import { CreditCardInstrument, VaultedInstrument } from '../payment';
-import {NonceInstrument} from "../payment/payment";
+import { NonceInstrument } from '../payment/payment';
 
 /**
  * An object that contains the information required for submitting an order.

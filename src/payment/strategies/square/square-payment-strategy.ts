@@ -47,8 +47,6 @@ export default class SquarePaymentStrategy extends PaymentStrategy {
     }
 
     initialize(options: PaymentInitializeOptions): Promise<InternalCheckoutSelectors> {
-        const { methodId } = options;
-
         return this._scriptLoader.load()
             .then(createSquareForm =>
                 new Promise((resolve, reject) => {
