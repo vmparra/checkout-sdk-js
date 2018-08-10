@@ -144,7 +144,7 @@ describe('SquarePaymentStrategy', () => {
 
         jest.spyOn(squareForm, 'build');
         jest.spyOn(squareForm, 'requestCardNonce')
-            .mockReturnValue(Promise.resolve('nonce'));
+            .mockReturnValue(Promise.resolve());
 
         (scriptLoader.load as jest.Mock).mockClear();
         (squareForm.build as jest.Mock).mockClear();
@@ -249,7 +249,6 @@ describe('SquarePaymentStrategy', () => {
                     payment: {
                         methodId: 'square',
                         paymentData: {
-                            nonce: '',
                         },
                     },
                     order: {
@@ -258,11 +257,23 @@ describe('SquarePaymentStrategy', () => {
                 };
 
                 await strategy.execute(payload);
-                expect(squareForm.requestCardNonce).toHaveBeenCalled().toHaveBeenCalledTimes(1);
+                console.log('Sali');
+                expect(squareForm.requestCardNonce).toHaveBeenCalledTimes(1);
             });
 
-            // Panchito
+            // Works
             // it('cancels the first request when a newer is made', () => {
+            //     const payload = {
+            //         payment: {
+            //             methodId: 'square',
+            //             paymentData: {
+            //                 instrumentId: '',
+            //             },
+            //         },
+            //         order: {
+            //             id: 'id',
+            //         },
+            //     };
             //     strategy.execute(payload).catch(e => expect(e).toBeInstanceOf(TimeoutError));
 
             //     setTimeout(() => {
