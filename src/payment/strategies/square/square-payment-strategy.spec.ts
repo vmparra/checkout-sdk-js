@@ -31,7 +31,6 @@ import { PaymentStrategyActionType } from '../../payment-strategy-actions';
 import SquarePaymentForm, {CardBrand, CardData, DigitalWalletType, SquareFormCallbacks, SquareFormElement, SquareFormOptions } from './square-form';
 import SquarePaymentStrategy, { SquarePaymentInitializeOptions } from './square-payment-strategy';
 import SquareScriptLoader from './square-script-loader';
-import { PromiseObservable } from '../../../../node_modules/rxjs/observable/PromiseObservable';
 
 describe('SquarePaymentStrategy', () => {
     let callbacks: SquareFormCallbacks;
@@ -65,11 +64,12 @@ describe('SquarePaymentStrategy', () => {
         requestCardNonce: () => {},
     };
 
-    const squareOptions = {
+    const squareOptions: SquarePaymentInitializeOptions = {
         cardNumber: { elementId: 'cardNumber' },
         cvv: { elementId: 'cvv' },
         expirationDate: { elementId: 'expirationDate' },
         postalCode: { elementId: 'postalCode' },
+        onPaymentSelect: () => { return; },
     };
 
     const cardData: CardData = {
@@ -154,25 +154,25 @@ describe('SquarePaymentStrategy', () => {
     describe('#initialize()', () => {
         describe('when form loads successfully', () => {
             // Works
-            // it('loads script when initializing strategy with required params', async () => {
-            //     const initOptions = {
-            //         methodId: paymentMethod.id,
-            //         square: squareOptions,
-            //     };
+            it('loads script when initializing strategy with required params', async () => {
+                const initOptions = {
+                    methodId: paymentMethod.id,
+                    square: squareOptions,
+                };
 
-            //     await strategy.initialize(initOptions);
+                await strategy.initialize(initOptions);
 
-            //     expect(scriptLoader.load).toHaveBeenCalledTimes(1);
-            // });
+                expect(scriptLoader.load).toHaveBeenCalledTimes(1);
+            });
 
             // Works
-            // it('fails to initialize when widget config is missing', async () => {
-            //     try {
-            //         await strategy.initialize({ methodId: paymentMethod.id });
-            //     } catch (error) {
-            //         expect(error.type).toEqual('invalid_argument');
-            //     }
-            // });
+            it('fails to initialize when widget config is missing', async () => {
+                try {
+                    await strategy.initialize({ methodId: paymentMethod.id });
+                } catch (error) {
+                    expect(error.type).toEqual('invalid_argument');
+                }
+            });
         });
 
         describe('when form fails to load', () => {
@@ -187,18 +187,18 @@ describe('SquarePaymentStrategy', () => {
             afterEach(() => (squareForm.build as any).mockRestore());
 
             // Works
-            // it('rejects the promise', () => {
-            //     const initOptions = {
-            //         methodId: paymentMethod.id,
-            //         square: squareOptions,
-            //     };
+            it('rejects the promise', () => {
+                const initOptions = {
+                    methodId: paymentMethod.id,
+                    square: squareOptions,
+                };
 
-            //     strategy.initialize(initOptions)
-            //         .catch(e => expect(e.type).toEqual('unsupported_browser'));
+                strategy.initialize(initOptions)
+                    .catch(e => expect(e.type).toEqual('unsupported_browser'));
 
-            //     expect(scriptLoader.load).toHaveBeenCalledTimes(1);
-            //     expect(squareForm.build).toHaveBeenCalledTimes(0);
-            // });
+                expect(scriptLoader.load).toHaveBeenCalledTimes(1);
+                expect(squareForm.build).toHaveBeenCalledTimes(0);
+            });
         });
     });
 
@@ -226,67 +226,82 @@ describe('SquarePaymentStrategy', () => {
 
         describe('when the form has been initialized', () => {
             let promise: Promise<InternalCheckoutSelectors>;
+
             beforeEach(async () => {
                 const initOptions = {
                     methodId: paymentMethod.id,
                     square: squareOptions,
                 };
                 promise = strategy.initialize(initOptions);
-
-                await strategy.initialize(initOptions);
             });
 
             // Works
-            // it('fails if payment name is not passed', () => {
-            //     try {
-            //         strategy.execute({});
-            //     } catch (error) {
-            //         expect(error).toBeInstanceOf(MissingDataError);
-            //         expect(squareForm.requestCardNonce).toHaveBeenCalledTimes(0);
-            //     }
-            // });
-
-            // Victor
-            it('requests the nonce', async () => {
+            it('fails if payment name is not passed', () => {
                 const payload = {
                     payment: {
                         methodId: 'square',
                         paymentData: {
+                            instrumentId: '',
                         },
                     },
                     order: {
                         id: 'id',
                     },
                 };
+                promise = strategy.execute(payload);
 
-                await strategy.execute(payload);
-                console.log('Sali');
-                expect(squareForm.requestCardNonce).toHaveBeenCalledTimes(1);
+                promise.catch(e => expect(e.type).toEqual('not_initialized'));
+                expect(orderActionCreator.submitOrder).toHaveBeenCalledTimes(0);
+                expect(paymentActionCreator.submitPayment).toHaveBeenCalledTimes(0);
+                // try {
+                //     strategy.execute({});
+                // } catch (error) {
+                //     expect(error).toBeInstanceOf(MissingDataError);
+                //     expect(squareForm.requestCardNonce).toHaveBeenCalledTimes(0);
+                // }
             });
 
-            // Works
-            // it('cancels the first request when a newer is made', () => {
+            // Victor
+            // it('requests the nonce', async () => {
             //     const payload = {
             //         payment: {
             //             methodId: 'square',
             //             paymentData: {
-            //                 instrumentId: '',
             //             },
             //         },
             //         order: {
             //             id: 'id',
             //         },
             //     };
-            //     strategy.execute(payload).catch(e => expect(e).toBeInstanceOf(TimeoutError));
 
-            //     setTimeout(() => {
-            //         if (callbacks.cardNonceResponseReceived) {
-            //             callbacks.cardNonceResponseReceived(null, 'nonce', cardData, undefined, undefined);
-            //         }
-            //     }, 0);
-
-            //     strategy.execute(payload);
+            //     await strategy.execute(payload);
+            //     console.log('Sali');
+            //     expect(squareForm.requestCardNonce).toHaveBeenCalledTimes(1);
             // });
+
+            // Works
+            it('cancels the first request when a newer is made', () => {
+                const payload = {
+                    payment: {
+                        methodId: 'square',
+                        paymentData: {
+                            instrumentId: '',
+                        },
+                    },
+                    order: {
+                        id: 'id',
+                    },
+                };
+                strategy.execute(payload).catch(e => expect(e).toBeInstanceOf(TimeoutError));
+
+                setTimeout(() => {
+                    if (callbacks.cardNonceResponseReceived) {
+                        callbacks.cardNonceResponseReceived(null, 'nonce', cardData, undefined, undefined);
+                    }
+                }, 0);
+
+                strategy.execute(payload);
+            });
 
             // Works by Manco
             it('resolves to what is returned by submitPayment', async () => {
@@ -295,27 +310,39 @@ describe('SquarePaymentStrategy', () => {
             });
 
             // Works
-            // it('submits the payment  with the right arguments', async () => {
-            //     const initOptions = {
-            //         methodId: paymentMethod.id,
-            //         square: squareOptions,
-            //     };
+            it('submits the payment  with the right arguments', async () => {
+                const initOptions = {
+                    methodId: paymentMethod.id,
+                    square: squareOptions,
+                };
 
-            //     await strategy.execute(payload, initOptions);
-            //     expect(paymentActionCreator.submitPayment).toHaveBeenCalledWith({
-            //         methodId: 'square',
-            //         paymentData: {
-            //             nonce: 'nonce',
-            //         },
-            //     });
-            // });
+                await strategy.execute(payload, initOptions);
+                expect(paymentActionCreator.submitPayment).toHaveBeenCalledWith({
+                    methodId: 'square',
+                    paymentData: {
+                        nonce: 'nonce',
+                    },
+                });
+            });
         });
 
         describe('when a failure happens receiving the nonce', () => {
             let promise: Promise<InternalCheckoutSelectors>;
 
+            const payload = {
+                payment: {
+                    methodId: 'square',
+                    paymentData: {
+                        instrumentId: '',
+                    },
+                },
+                order: {
+                    id: 'id',
+                },
+            };
+
             beforeEach(() => {
-                // promise = strategy.execute(payload);
+                promise = strategy.execute(payload);
 
                 // if (callbacks.cardNonceResponseReceived) {
                 //     callbacks.cardNonceResponseReceived(null, 'nonce', cardData, undefined, undefined);
@@ -323,23 +350,23 @@ describe('SquarePaymentStrategy', () => {
             });
 
             // Works
-            // it('does not place the order', () => {
-            //     expect(orderActionCreator.submitOrder).toHaveBeenCalledTimes(0);
-            //     expect(store.dispatch).not.toHaveBeenCalledWith(submitOrderAction);
-            // });
+            it('does not place the order', () => {
+                expect(orderActionCreator.submitOrder).toHaveBeenCalledTimes(0);
+                expect(store.dispatch).not.toHaveBeenCalledWith(submitOrderAction);
+            });
 
             // Works
-            // it('does not submit payment', () => {
-            //     expect(paymentActionCreator.submitPayment).toHaveBeenCalledTimes(0);
-            // });
+            it('does not submit payment', () => {
+                expect(paymentActionCreator.submitPayment).toHaveBeenCalledTimes(0);
+            });
 
-            // it('rejects the promise', async () => {
-            //     try {
-            //         await promise;
-            //     } catch (e) {
-            //         expect(e).toBeTruthy();
-            //     }
-            // });
+            it('rejects the promise', async () => {
+                try {
+                    await promise;
+                } catch (e) {
+                    expect(e).toBeTruthy();
+                }
+            });
         });
 
         describe('#execute()', async () => {
@@ -357,22 +384,8 @@ describe('SquarePaymentStrategy', () => {
                 };
 
                 const options: PaymentInitializeOptions = {
-                    methodId: '',
-                    square:  {
-                        cardNumber: {
-                            elementId: '',
-                        },
-                        cvv: {
-                            elementId: '',
-                        },
-                        expirationDate: {
-                            elementId: '',
-                        },
-                        postalCode: {
-                            elementId: '',
-                        },
-                        onPaymentSelect: () => { return; },
-                    },
+                    methodId: 'square',
+                    square: squareOptions,
                 };
 
                 beforeEach(async () => {
@@ -388,36 +401,36 @@ describe('SquarePaymentStrategy', () => {
                 });
 
                 // Works
-                // it('places the order with the right arguments', async () => {
-                //     const initOptions = {
-                //         methodId: paymentMethod.id,
-                //         square: squareOptions,
-                //     };
+                it('places the order with the right arguments', async () => {
+                    const initOptions = {
+                        methodId: paymentMethod.id,
+                        square: squareOptions,
+                    };
 
-                //     const {payment, ...order} = payload;
+                    const {payment, ...order} = payload;
 
-                //     await strategy.execute(payload, initOptions);
-                //     await expect(orderActionCreator.submitOrder).toHaveBeenCalledWith(order, initOptions);
-                //     await expect(store.dispatch).toHaveBeenCalledWith(submitOrderAction);
-                // });
+                    await strategy.execute(payload, initOptions);
+                    await expect(orderActionCreator.submitOrder).toHaveBeenCalledWith(order, initOptions);
+                    await expect(store.dispatch).toHaveBeenCalledWith(submitOrderAction);
+                });
 
                 // Works
-                // it('calls submit order with the order request information', async () => {
+                it('calls submit order with the order request information', async () => {
 
-                //     await strategy.execute(payload, options);
+                    await strategy.execute(payload, options);
 
-                //     const { order, payment } = payload;
-                //     const expectOrder = { order };
+                    const { order, payment } = payload;
+                    const expectOrder = { order };
 
-                //     const paymentPayload = {
-                //         methodId: payment.methodId,
-                //         paymentData: {nonce: (payment.paymentData as NonceInstrument).nonce},
-                //     };
+                    const paymentPayload = {
+                        methodId: payment.methodId,
+                        paymentData: {nonce: (payment.paymentData as NonceInstrument).nonce},
+                    };
 
-                //     expect(orderActionCreator.submitOrder).toHaveBeenCalledWith(expectOrder, options);
-                //     expect(store.dispatch).toHaveBeenCalledWith(submitOrderAction);
-                //     expect(paymentActionCreator.submitPayment).toHaveBeenCalledWith(paymentPayload);
-                // });
+                    expect(orderActionCreator.submitOrder).toHaveBeenCalledWith(expectOrder, options);
+                    expect(store.dispatch).toHaveBeenCalledWith(submitOrderAction);
+                    expect(paymentActionCreator.submitPayment).toHaveBeenCalledWith(paymentPayload);
+                });
             });
         });
     });
