@@ -49,8 +49,6 @@ export default class SquarePaymentStrategy extends PaymentStrategy {
     initialize(options: PaymentInitializeOptions): Promise<InternalCheckoutSelectors> {
         const { methodId } = options;
 
-        return this._store.dispatch(this._paymentMethodActionCreator.loadPaymentMethod(methodId))
-            .then(state => {
         return this._scriptLoader.load()
             .then(createSquareForm =>
                 new Promise((resolve, reject) => {
@@ -61,7 +59,6 @@ export default class SquarePaymentStrategy extends PaymentStrategy {
                     this._paymentForm.build();
                 }))
             .then(() => super.initialize(options));
-            });
     }
 
     execute(payload: OrderRequestBody, options?: PaymentRequestOptions): Promise<InternalCheckoutSelectors> {
@@ -70,7 +67,6 @@ export default class SquarePaymentStrategy extends PaymentStrategy {
         if (!payment || !payment.methodId) {
             throw new MissingDataError(MissingDataErrorType.MissingPaymentMethod);
         }
-
         const paymentName = payment.methodId;
         if ((payment.paymentData as NonceInstrument).nonce) {
             const paymentPayload = {

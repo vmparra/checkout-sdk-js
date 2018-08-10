@@ -4,7 +4,7 @@ import { createRequestSender } from '@bigcommerce/request-sender';
 import { createScriptLoader } from '@bigcommerce/script-loader';
 import { Observable } from 'rxjs';
 
-import { PaymentActionCreator, PaymentInitializeOptions, PaymentRequestSender } from '../..';
+import { PaymentActionCreator, PaymentInitializeOptions, PaymentRequestSender, PaymentRequestOptions } from '../..';
 import {
     createCheckoutClient,
     createCheckoutStore,
@@ -340,11 +340,6 @@ describe('SquarePaymentStrategy', () => {
                 };
 
                 beforeEach(async () => {
-                    const initOptions = {
-                        methodId: paymentMethod.id,
-                        square: squareOptions,
-                    };
-
                     const widgetInteractionAction = Observable.of(createAction(PaymentStrategyActionType.WidgetInteractionStarted));
                     jest.spyOn(paymentStrategyActionCreator, 'widgetInteraction').mockImplementation(() => widgetInteractionAction);
                     jest.spyOn(checkoutActionCreator, 'loadCurrentCheckout');
@@ -356,10 +351,18 @@ describe('SquarePaymentStrategy', () => {
                     }
                 });
 
-                // it('places the order with the right arguments', async () => {
-                //     await expect(orderActionCreator.submitOrder).toHaveBeenCalledWith({ useStoreCredit: true }, options);
-                //     await expect(store.dispatch).toHaveBeenCalledWith(submitOrderAction);
-                // });
+                it('places the order with the right arguments', async () => {
+                    const initOptions = {
+                        methodId: paymentMethod.id,
+                        square: squareOptions,
+                    };
+
+                    const {payment, ...order} = payload;
+
+                    await strategy.execute(payload, initOptions);
+                    await expect(orderActionCreator.submitOrder).toHaveBeenCalledWith(order, initOptions);
+                    await expect(store.dispatch).toHaveBeenCalledWith(submitOrderAction);
+                });
 
                 it('calls submit order with the order request information', async () => {
 
