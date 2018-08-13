@@ -171,7 +171,7 @@ describe('SquarePaymentStrategy', () => {
                     .catch(e => expect(e).toBeInstanceOf(UnsupportedBrowserError));
 
                 expect(scriptLoader.load).toHaveBeenCalledTimes(1);
-                expect(squareForm.build).toHaveBeenCalledTimes(0);
+                expect(squareForm.build).not.toBeCalled();
             });
         });
     });
@@ -183,7 +183,7 @@ describe('SquarePaymentStrategy', () => {
                 await strategy.execute(payloadCreditCard)
                     .catch(e => expect(e).toBeInstanceOf(NotInitializedError));
 
-                expect(squareForm.requestCardNonce).toHaveBeenCalledTimes(0);
+                expect(squareForm.requestCardNonce).not.toBeCalled();
             });
         });
 
@@ -191,8 +191,8 @@ describe('SquarePaymentStrategy', () => {
 
             it('fails if payment name is not passed', async () => {
                 await strategy.execute(payloadVaulted).catch(e => expect(e).toBeInstanceOf(NotInitializedError));
-                expect(orderActionCreator.submitOrder).toHaveBeenCalledTimes(0);
-                expect(paymentActionCreator.submitPayment).toHaveBeenCalledTimes(0);
+                expect(orderActionCreator.submitOrder).not.toBeCalled();
+                expect(paymentActionCreator.submitPayment).not.toBeCalled();
             });
 
             it('cancels the first request when a newer is made', async () => {
@@ -232,12 +232,12 @@ describe('SquarePaymentStrategy', () => {
             });
 
             it('does not place the order', () => {
-                expect(orderActionCreator.submitOrder).toHaveBeenCalledTimes(0);
+                expect(orderActionCreator.submitOrder).not.toBeCalled();
                 expect(store.dispatch).not.toHaveBeenCalledWith(submitOrderAction);
             });
 
             it('does not submit payment', () => {
-                expect(paymentActionCreator.submitPayment).toHaveBeenCalledTimes(0);
+                expect(paymentActionCreator.submitPayment).not.toBeCalled();
             });
 
             it('rejects the promise', async () => {
