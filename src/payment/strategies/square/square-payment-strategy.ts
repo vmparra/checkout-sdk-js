@@ -131,22 +131,26 @@ export default class SquarePaymentStrategy extends PaymentStrategy {
                 unsupportedBrowserDetected: () => {
                     deferred.reject(new UnsupportedBrowserError());
                 },
-                cardNonceResponseReceived: (errors: NonceGenerationError[] | undefined, nonce: string, cardData: CardData | undefined,
+                cardNonceResponseReceived: (errors: NonceGenerationError[] | undefined, nonce: string | undefined, cardData: CardData | undefined,
                                             billingContact: Contact | undefined, shippingContact: Contact | undefined) => {
                     if (errors) {
                         this._handleNonceGenerationErrors(errors);
-                    } else if (cardData && cardData.digital_wallet_type !== DigitalWalletType.none) {
-                        this._setExternalCheckoutData(cardData, nonce)
-                        .then(() => {
-                            this._paymentInstrumentSelected(methodId)
+                    }
+
+                    if (nonce) {
+                        if (cardData && cardData.digital_wallet_type !== DigitalWalletType.none) {
+                            this._setExternalCheckoutData(cardData, nonce)
                             .then(() => {
-                                if (squareOptions.onPaymentSelect) {
-                                    squareOptions.onPaymentSelect();
-                                }
+                                this._paymentInstrumentSelected(methodId)
+                                .then(() => {
+                                    if (squareOptions.onPaymentSelect) {
+                                        squareOptions.onPaymentSelect();
+                                    }
+                                });
                             });
-                        });
-                    } else {
-                        this._cardNonceResponseReceived(nonce, errors);
+                        } else {
+                            this._cardNonceResponseReceived(nonce, errors);
+                        }
                     }
                 },
                 methodsSupported: () => {},
@@ -206,10 +210,6 @@ export default class SquarePaymentStrategy extends PaymentStrategy {
     }
 
     private _handleSquareValidationErrors(error: SquareValidationErrors) {
-        if (!error.country && !error.region && !error.city && !error.addressLines && !error.postalCode) {
-            throw new StandardError('Unknown error');
-        }
-
         if (error.country) {
             throw new StandardError(error.country.join(','));
         }
@@ -223,7 +223,12 @@ export default class SquarePaymentStrategy extends PaymentStrategy {
             throw new StandardError(error.addressLines.join(','));
         }
 
-        throw new StandardError(error.postalCode.join(','));
+        if (error.postalCode) {
+            throw new StandardError(error.postalCode.join(','));
+        }
+
+        throw new StandardError('Unknown error');
+
     }
 
     private _cardNonceResponseReceived(nonce: string, nonceGenerationErrors: NonceGenerationError[] | undefined): void {
@@ -239,20 +244,19 @@ export default class SquarePaymentStrategy extends PaymentStrategy {
     }
 
     private _setExternalCheckoutData(cardData: CardData, nonce: string): Promise<Response> {
-        const url = `checkout.php?provider=squarev2&action=set_external_checkout`;
-        const options = {
-          headers: {
-            Accept: 'text/html',
-            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-          },
-          body: toFormUrlEncoded({
-              nonce,
-              cardData: JSON.stringify(cardData),
-          }),
-        };
-
-        return this._requestSender.post(url, options);
-      }
+        return this._requestSender.post('/checkout.php', {
+            headers: {
+                Accept: 'text/html',
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: toFormUrlEncoded({
+                nonce,
+                provider: 'squarev2',
+                action: 'set_external_checkout',
+                cardData: JSON.stringify(cardData),
+            }),
+      });
+    }
 }
 
 export interface DeferredPromise {
