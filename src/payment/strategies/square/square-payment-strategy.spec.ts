@@ -4,7 +4,7 @@ import { createRequestSender } from '@bigcommerce/request-sender';
 import { createScriptLoader } from '@bigcommerce/script-loader';
 import { Observable } from 'rxjs';
 
-import { PaymentActionCreator, PaymentRequestSender } from '../..';
+import { PaymentActionCreator, PaymentInitializeOptions, PaymentRequestSender } from '../..';
 import {
     createCheckoutClient,
     createCheckoutStore,
@@ -13,12 +13,11 @@ import {
     CheckoutValidator,
     InternalCheckoutSelectors
 } from '../../../checkout';
-import CheckoutActionCreator from '../../../checkout/checkout-action-creator';
+import { CheckoutActionCreator } from '../../../checkout';
 import { getCheckoutStoreState } from '../../../checkout/checkouts.mock';
-import { NotInitializedError, TimeoutError } from '../../../common/error/errors';
-import UnsupportedBrowserError from '../../../common/error/errors/unsupported-browser-error';
+import { NotInitializedError, TimeoutError, UnsupportedBrowserError } from '../../../common/error/errors';
 import { ConfigActionCreator, ConfigRequestSender } from '../../../config';
-import { OrderActionCreator, OrderActionType } from '../../../order';
+import { OrderActionCreator, OrderActionType, OrderRequestBody } from '../../../order';
 import { getPaymentMethodsState, getSquare } from '../../../payment/payment-methods.mock';
 import createPaymentStrategyRegistry from '../../create-payment-strategy-registry';
 import { PaymentActionType} from '../../payment-actions';
@@ -26,9 +25,15 @@ import PaymentMethod from '../../payment-method';
 import PaymentMethodActionCreator from '../../payment-method-action-creator';
 import PaymentStrategyActionCreator from '../../payment-strategy-action-creator';
 
-import SquarePaymentForm, { DigitalWalletType, SquareFormCallbacks, SquareFormOptions } from './square-form';
+import SquarePaymentForm, { CardData, DigitalWalletType, SquareFormCallbacks, SquareFormOptions } from './square-form';
 import SquarePaymentStrategy from './square-payment-strategy';
-import { getCardData, getPayloadCreditCard, getPayloadNonce, getPayloadVaulted, getSquarePaymentInitializeOptions } from './square-payment-strategy-mock';
+import {
+    getCardData,
+    getPayloadCreditCard,
+    getPayloadNonce,
+    getPayloadVaulted,
+    getSquarePaymentInitializeOptions,
+} from './square-payment-strategy-mock';
 import SquareScriptLoader from './square-script-loader';
 
 describe('SquarePaymentStrategy', () => {
@@ -37,6 +42,7 @@ describe('SquarePaymentStrategy', () => {
     let orderActionCreator: OrderActionCreator;
     let paymentActionCreator: PaymentActionCreator;
     let paymentMethod: PaymentMethod;
+    let initOptions: PaymentInitializeOptions;
     let paymentMethodActionCreator: PaymentMethodActionCreator;
     let paymentStrategyActionCreator: PaymentStrategyActionCreator;
     let scriptLoader: SquareScriptLoader;
@@ -61,12 +67,6 @@ describe('SquarePaymentStrategy', () => {
         },
         requestCardNonce: () => {},
     };
-
-    const cardData = getCardData();
-    const initOptions = getSquarePaymentInitializeOptions();
-    const payloadCreditCard = getPayloadCreditCard();
-    const payloadNonce = getPayloadNonce();
-    const payloadVaulted = getPayloadVaulted();
 
     beforeEach(() => {
         store = createCheckoutStore({
@@ -95,6 +95,7 @@ describe('SquarePaymentStrategy', () => {
         scriptLoader = new SquareScriptLoader(createScriptLoader());
 
         checkoutActionCreator = new CheckoutActionCreator(checkoutRequestSender, configActionCreator);
+        initOptions = getSquarePaymentInitializeOptions();
         paymentMethodActionCreator = new PaymentMethodActionCreator(client);
         submitOrderAction = Observable.of(createAction(OrderActionType.SubmitOrderRequested));
         submitPaymentAction = Observable.of(createAction(PaymentActionType.SubmitPaymentRequested));
@@ -177,6 +178,17 @@ describe('SquarePaymentStrategy', () => {
     });
 
     describe('#execute()', () => {
+        let cardData: CardData;
+        let payloadCreditCard: OrderRequestBody;
+        let payloadNonce: any;
+        let payloadVaulted: any;
+
+        beforeEach(() => {
+            cardData = getCardData();
+            payloadCreditCard = getPayloadCreditCard();
+            payloadNonce = getPayloadNonce();
+            payloadVaulted = getPayloadVaulted();
+        });
 
         describe('when form has not been initialized', () => {
             it('rejects the promise', async () => {

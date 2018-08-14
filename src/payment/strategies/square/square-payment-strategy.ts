@@ -31,7 +31,6 @@ import PaymentStrategy from '../payment-strategy';
 
 import SquarePaymentForm, {
     CardData,
-    Contact,
     DigitalWalletType,
     NonceGenerationError,
     SquareFormElement,
@@ -76,13 +75,13 @@ export default class SquarePaymentStrategy extends PaymentStrategy {
         if (!payment || !payment.methodId) {
             throw new MissingDataError(MissingDataErrorType.MissingPaymentMethod);
         }
-        const paymentName = payment.methodId;
+
         if (payment.paymentData && isNonceLike(payment.paymentData)) {
             const paymentPayload: Payment = {
-                methodId: paymentName,
-                paymentData: payment.paymentData as NonceInstrument,
+                methodId: payment.methodId,
+                paymentData: payment.paymentData,
             };
-            const methodId = payload.payment;
+
             return this._store.dispatch(this._orderActionCreator.submitOrder(order, options))
                 .then(() =>
                     this._store.dispatch(this._paymentActionCreator.submitPayment(paymentPayload))
@@ -101,8 +100,8 @@ export default class SquarePaymentStrategy extends PaymentStrategy {
                 this._paymentForm.requestCardNonce();
             })
             .then(paymentData => {
-                const paymentPayload = {
-                    methodId: paymentName,
+                const paymentPayload: Payment = {
+                    methodId: payment.methodId,
                     paymentData,
                 };
                 return this._store.dispatch(this._orderActionCreator.submitOrder(order, options))
@@ -142,17 +141,7 @@ export default class SquarePaymentStrategy extends PaymentStrategy {
                 unsupportedBrowserDetected: () => {
                     deferred.reject(new UnsupportedBrowserError());
                 },
-                cardNonceResponseReceived: (errors?: NonceGenerationError[],
-                                            nonce?: string,
-                                            cardData?: CardData,
-                                            billingContact?: Contact,
-                                            shippingContact?: Contact
-                    ) => {
-                    if (errors) {
-                        const error = errors[0];
-
-                        throw new StandardError(error.message);
-                    }
+                cardNonceResponseReceived: (errors?, nonce?, cardData?, billingContact?, shippingContact?) => {
 
                     if (cardData && cardData.digital_wallet_type !== DigitalWalletType.none) {
                         this._setExternalCheckoutData(cardData, nonce)
@@ -236,13 +225,13 @@ export default class SquarePaymentStrategy extends PaymentStrategy {
         throw new StandardError('Unknown error');
     }
 
-    private _cardNonceResponseReceived(nonce?: string, nonceGenerationErrors?: NonceGenerationError[]): void {
+    private _cardNonceResponseReceived(nonce?: string, errors?: NonceGenerationError[]): void {
         if (!this._deferredRequestNonce) {
-            throw new StandardError();
+            throw new StandardError('Unknown Error');
         }
 
-        if (nonceGenerationErrors) {
-            this._deferredRequestNonce.reject(nonceGenerationErrors);
+        if (errors) {
+            this._deferredRequestNonce.reject(this._handleErrors(errors));
         }
         if (nonce) {
             this._deferredRequestNonce.resolve({ nonce });
@@ -261,7 +250,15 @@ export default class SquarePaymentStrategy extends PaymentStrategy {
                 action: 'set_external_checkout',
                 cardData: JSON.stringify(cardData),
             }),
-      });
+        });
+    }
+
+    private _handleErrors(errors: NonceGenerationError[]) {
+        let messages: string[];
+        messages = [];
+        errors.map(e => messages.push(e.message));
+
+        return messages.join(', ');
     }
 }
 

@@ -17,10 +17,12 @@ export function getCardData(): CardData {
     };
 }
 
-export function getPayloadCreditCard() {
+export function getPayloadCreditCard(): OrderRequestBody {
     return {
-        ...getCreditCardRequestBody(),
-        ...getOrderPayload(),
+        payment: {
+            ...getOrderRequestBody().payment,
+            methodId,
+        },
     };
 }
 
@@ -63,15 +65,6 @@ function getOrderPayload() {
     return {
         order: {
             id: 'id',
-        },
-    };
-}
-
-function getCreditCardRequestBody(): OrderRequestBody {
-    return {
-        payment: {
-            ...getOrderRequestBody().payment,
-            methodId,
         },
     };
 }

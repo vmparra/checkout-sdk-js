@@ -55,12 +55,15 @@ export default function createPaymentStrategyRegistry(
         new PaymentRequestSender(paymentClient),
         orderActionCreator
     );
+
     const paymentMethodActionCreator = new PaymentMethodActionCreator(client);
     const remoteCheckoutActionCreator = new RemoteCheckoutActionCreator(
         new RemoteCheckoutRequestSender(createRequestSender())
     );
     const configRequestSender = new ConfigRequestSender(requestSender);
     const configActionCreator = new ConfigActionCreator(configRequestSender);
+    const checkoutActionCreator = new CheckoutActionCreator(checkoutRequestSender, configActionCreator);
+    const paymentStrategyActionCreator = new PaymentStrategyActionCreator(registry, orderActionCreator);
 
     registry.register('afterpay', () =>
         new AfterpayPaymentStrategy(
@@ -160,11 +163,11 @@ export default function createPaymentStrategyRegistry(
     registry.register('squarev2', () =>
         new SquarePaymentStrategy(
             store,
-            new CheckoutActionCreator(checkoutRequestSender, configActionCreator),
+            checkoutActionCreator,
             orderActionCreator,
             paymentActionCreator,
             paymentMethodActionCreator,
-            new PaymentStrategyActionCreator(registry, orderActionCreator),
+            paymentStrategyActionCreator,
             requestSender,
             new SquareScriptLoader(scriptLoader)
         )
@@ -211,9 +214,9 @@ export default function createPaymentStrategyRegistry(
     registry.register('braintreevisacheckout', () =>
         new BraintreeVisaCheckoutPaymentStrategy(
             store,
-            new CheckoutActionCreator(checkoutRequestSender, configActionCreator),
+            checkoutActionCreator,
             paymentMethodActionCreator,
-            new PaymentStrategyActionCreator(registry, orderActionCreator),
+            paymentStrategyActionCreator,
             paymentActionCreator,
             orderActionCreator,
             createBraintreeVisaCheckoutPaymentProcessor(scriptLoader),
