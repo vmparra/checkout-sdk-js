@@ -1,6 +1,6 @@
 import { PaymentInitializeOptions } from '../..';
+import { OrderRequestBody } from '../../../order';
 import { getOrderRequestBody } from '../../../order/internal-orders.mock';
-import OrderRequestBody from '../../../order/order-request-body';
 
 import { CardBrand, CardData, DigitalWalletType } from './square-form';
 
@@ -19,22 +19,22 @@ export function getCardData(): CardData {
 
 export function getPayloadCreditCard() {
     return {
-        ..._getCreditCardRequestBody(),
-        ..._getOrderPayload(),
+        ...getCreditCardRequestBody(),
+        ...getOrderPayload(),
     };
 }
 
 export function getPayloadVaulted() {
     return {
-        ..._getVaultedInstrumentRequestBody(),
-        ..._getOrderPayload(),
+        ...getVaultedInstrumentRequestBody(),
+        ...getOrderPayload(),
     };
 }
 
 export function getPayloadNonce() {
     return {
-        ..._getNonceInstrumentRequestBody(),
-        ..._getOrderPayload(),
+        ...getNonceInstrumentRequestBody(),
+        ...getOrderPayload(),
     };
 }
 
@@ -59,7 +59,7 @@ export function getSquarePaymentInitializeOptions(): PaymentInitializeOptions {
     };
 }
 
-function _getOrderPayload() {
+function getOrderPayload() {
     return {
         order: {
             id: 'id',
@@ -67,7 +67,7 @@ function _getOrderPayload() {
     };
 }
 
-function _getCreditCardRequestBody(): OrderRequestBody {
+function getCreditCardRequestBody(): OrderRequestBody {
     return {
         payment: {
             ...getOrderRequestBody().payment,
@@ -76,7 +76,7 @@ function _getCreditCardRequestBody(): OrderRequestBody {
     };
 }
 
-function _getNonceInstrumentRequestBody(): OrderRequestBody {
+function getNonceInstrumentRequestBody(): OrderRequestBody {
     return {
         payment: {
             paymentData: {
@@ -87,7 +87,7 @@ function _getNonceInstrumentRequestBody(): OrderRequestBody {
     };
 }
 
-function _getVaultedInstrumentRequestBody(): OrderRequestBody {
+function getVaultedInstrumentRequestBody(): OrderRequestBody {
     return {
         useStoreCredit: true,
         payment: {

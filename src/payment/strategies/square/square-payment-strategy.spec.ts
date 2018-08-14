@@ -69,23 +69,23 @@ describe('SquarePaymentStrategy', () => {
     const payloadVaulted = getPayloadVaulted();
 
     beforeEach(() => {
+        store = createCheckoutStore({
+            paymentMethods: getPaymentMethodsState(),
+        });
+
         const client = createCheckoutClient();
         const requestSender = createRequestSender();
         const paymentClient = createPaymentClient(store);
         const registry = createPaymentStrategyRegistry(store, client, paymentClient);
-        const checkoutRequestSender = new CheckoutRequestSender(createRequestSender());
-        const configRequestSender = new ConfigRequestSender(createRequestSender());
+        const checkoutRequestSender = new CheckoutRequestSender(requestSender);
+        const configRequestSender = new ConfigRequestSender(requestSender);
         const configActionCreator = new ConfigActionCreator(configRequestSender);
-        const checkoutValidator = new CheckoutValidator(checkoutRequestSender);
 
-        store = createCheckoutStore({
-            paymentMethods: getPaymentMethodsState(),
-        });
         paymentMethod = getSquare();
 
         orderActionCreator = new OrderActionCreator(
-            createCheckoutClient(),
-            checkoutValidator
+            client,
+            new CheckoutValidator(checkoutRequestSender)
         );
         paymentActionCreator = new PaymentActionCreator(
             new PaymentRequestSender(createPaymentClient()),
@@ -201,7 +201,7 @@ describe('SquarePaymentStrategy', () => {
 
                 setTimeout(() => {
                     if (callbacks.cardNonceResponseReceived) {
-                        callbacks.cardNonceResponseReceived(null, 'nonce', cardData, undefined, undefined);
+                        callbacks.cardNonceResponseReceived(undefined, 'nonce', cardData, undefined, undefined);
                     }
                 }, 0);
 
@@ -256,7 +256,7 @@ describe('SquarePaymentStrategy', () => {
                 beforeEach(async () => {
                     await strategy.initialize(initOptions);
                     if (callbacks.cardNonceResponseReceived) {
-                        callbacks.cardNonceResponseReceived(null, 'nonce', cardData, undefined, undefined);
+                        callbacks.cardNonceResponseReceived(undefined, 'nonce', cardData, undefined, undefined);
                     }
                 });
 
@@ -286,7 +286,7 @@ describe('SquarePaymentStrategy', () => {
 
                     const promise: Promise<InternalCheckoutSelectors> = strategy.execute(payloadVaulted, initOptions);
                     if (callbacks.cardNonceResponseReceived) {
-                        callbacks.cardNonceResponseReceived(null, 'nonce', cardData, undefined, undefined);
+                        callbacks.cardNonceResponseReceived(undefined, 'nonce', cardData, undefined, undefined);
                     }
                     await promise.then(() => {
                         expect(orderActionCreator.submitOrder).toHaveBeenCalledTimes(1);
