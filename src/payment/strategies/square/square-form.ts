@@ -1,4 +1,4 @@
-export interface SquarePaymentForm {
+export default interface SquarePaymentForm {
     build(): void;
     requestCardNonce(): void;
     setPostalCode(postalCode: string): void;
@@ -29,11 +29,12 @@ export interface NonceGenerationError {
 }
 
 export interface SquareValidationErrors {
-    country?: string[];
-    region?: string[];
-    city?: string[];
-    addressLines?: string[];
-    postalCode?: string[];
+    country: string[];
+    region: string[];
+    city: string[];
+    addressLines: string[];
+    postalCode: string[];
+    [key: string]: string[];
 }
 
 export interface CardData {

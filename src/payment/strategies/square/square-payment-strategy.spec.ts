@@ -23,31 +23,22 @@ import {
     InternalCheckoutSelectors
 } from '../../../checkout';
 import { getCheckoutStoreState } from '../../../checkout/checkouts.mock';
-import {
-    NotInitializedError,
-    TimeoutError,
-    UnsupportedBrowserError
-} from '../../../common/error/errors';
+import { NotInitializedError, TimeoutError, UnsupportedBrowserError } from '../../../common/error/errors';
 import { ConfigActionCreator, ConfigRequestSender } from '../../../config';
-import {
-    OrderActionCreator,
-    OrderActionType,
-    OrderRequestBody
-} from '../../../order';
+import { OrderActionCreator, OrderActionType, OrderRequestBody } from '../../../order';
 import { getPaymentMethodsState, getSquare } from '../../../payment/payment-methods.mock';
 import { PaymentActionType } from '../../payment-actions';
 
-import {
-    SquarePaymentStrategy,
-    SquareScriptLoader
-} from './';
 import {
     CardData,
     DigitalWalletType,
     SquareFormCallbacks,
     SquareFormOptions,
-    SquarePaymentForm
-} from './square-form';
+    SquarePaymentForm,
+    SquarePaymentStrategy,
+    SquareScriptLoader
+} from './';
+
 import {
     getCardData,
     getPayloadCreditCard,

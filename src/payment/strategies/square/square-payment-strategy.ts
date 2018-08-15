@@ -4,18 +4,13 @@ import { PaymentStrategy } from '../';
 import { isNonceLike } from '../..';
 import {
     NonceInstrument,
-    Payment,
     PaymentActionCreator,
     PaymentInitializeOptions,
     PaymentMethodActionCreator,
     PaymentRequestOptions,
     PaymentStrategyActionCreator
 } from '../../';
-import {
-    CheckoutActionCreator,
-    CheckoutStore,
-    InternalCheckoutSelectors
-} from '../../../checkout';
+import { CheckoutActionCreator, CheckoutStore, InternalCheckoutSelectors } from '../../../checkout';
 import {
     InvalidArgumentError,
     MissingDataError,
@@ -27,9 +22,8 @@ import {
     UnsupportedBrowserError,
 } from '../../../common/error/errors';
 import { toFormUrlEncoded } from '../../../common/http-request';
-import { OrderActionCreator, OrderRequestBody } from '../../../order';
+import { OrderActionCreator, OrderPaymentRequestBody, OrderRequestBody } from '../../../order';
 
-import { SquareScriptLoader } from '.';
 import {
     CardData,
     DigitalWalletType,
@@ -37,8 +31,9 @@ import {
     SquareFormElement,
     SquareFormOptions,
     SquarePaymentForm,
+    SquareScriptLoader,
     SquareValidationErrors
-} from './square-form';
+} from '.';
 
 export default class SquarePaymentStrategy extends PaymentStrategy {
     private _paymentForm?: SquarePaymentForm;
@@ -77,24 +72,24 @@ export default class SquarePaymentStrategy extends PaymentStrategy {
             throw new MissingDataError(MissingDataErrorType.MissingPaymentMethod);
         }
 
-        const { methodId, paymentData } = payment;
+        const { methodId } = payment;
 
-        if (paymentData && isNonceLike(paymentData)) {
-            const paymentPayload = { methodId, paymentData };
+        return this._getPaymentData(payment)
+            .then(paymentData => {
+                const paymentPayload = { methodId, paymentData };
 
-            return this._processPayment(payload, paymentPayload, options);
-
-        } else {
-            return this._getPaymentData()
-                .then(paymentData => {
-                    const paymentPayload = { methodId, paymentData };
-
-                    return this._processPayment(payload, paymentPayload, options);
-                });
-        }
+                return this._store.dispatch(this._orderActionCreator.submitOrder(payload, options))
+                    .then(() =>
+                        this._store.dispatch(this._paymentActionCreator.submitPayment(paymentPayload))
+                    );
+            });
     }
 
-    private _getPaymentData(): Promise<NonceInstrument> {
+    private _getPaymentData({ paymentData }: OrderPaymentRequestBody): Promise<NonceInstrument> {
+        if (paymentData && isNonceLike(paymentData)) {
+            return Promise.resolve(paymentData);
+        }
+
         return new Promise<NonceInstrument>((resolve, reject) => {
             if (!this._paymentForm) {
                 throw new NotInitializedError(NotInitializedErrorType.PaymentNotInitialized);
@@ -107,16 +102,6 @@ export default class SquarePaymentStrategy extends PaymentStrategy {
             this._deferredRequestNonce = { resolve, reject };
             this._paymentForm.requestCardNonce();
         });
-    }
-
-    private _processPayment(payload: OrderRequestBody,
-                            paymentPayload: Payment,
-                            options?: PaymentRequestOptions):
-                            Promise<InternalCheckoutSelectors> {
-        return this._store.dispatch(this._orderActionCreator.submitOrder(payload, options))
-            .then(() =>
-                this._store.dispatch(this._paymentActionCreator.submitPayment(paymentPayload))
-            );
     }
 
     private _getFormOptions(options: PaymentInitializeOptions, deferred: DeferredPromise): SquareFormOptions {
@@ -209,30 +194,35 @@ export default class SquarePaymentStrategy extends PaymentStrategy {
     }
 
     private _handleSquareValidationErrors(error: SquareValidationErrors) {
-        let messages: string[];
-        messages = [];
+            const errors = Object.keys(error)
+                .map(key => error[key].join(', '))
+                .join(', ');
 
-        if (error.country) {
-            error.country.map(e => messages.push(e));
-        }
+            throw new StandardError(errors);
+        // let messages: string[];
+        // messages = [];
 
-        if (error.region) {
-            error.region.map(e => messages.push(e));
-        }
+        // if (error.country) {
+        //     error.country.map(e => messages.push(e));
+        // }
 
-        if (error.city) {
-            error.city.map(e => messages.push(e));
-        }
+        // if (error.region) {
+        //     error.region.map(e => messages.push(e));
+        // }
 
-        if (error.addressLines) {
-            error.addressLines.map(e => messages.push(e));
-        }
+        // if (error.city) {
+        //     error.city.map(e => messages.push(e));
+        // }
 
-        if (error.postalCode) {
-            error.postalCode.map(e => messages.push(e));
-        }
+        // if (error.addressLines) {
+        //     error.addressLines.map(e => messages.push(e));
+        // }
 
-        throw new StandardError(messages.join(', '));
+        // if (error.postalCode) {
+        //     error.postalCode.map(e => messages.push(e));
+        // }
+
+        // throw new StandardError(messages.join(', '));
     }
 
     private _cardNonceResponseReceived(nonce?: string, errors?: NonceGenerationError[]): void {
