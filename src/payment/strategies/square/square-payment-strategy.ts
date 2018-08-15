@@ -1,5 +1,6 @@
 import { RequestSender, Response } from '@bigcommerce/request-sender';
 
+import { PaymentStrategy } from '../';
 import { isNonceLike } from '../..';
 import {
     NonceInstrument,
@@ -27,17 +28,17 @@ import {
 } from '../../../common/error/errors';
 import { toFormUrlEncoded } from '../../../common/http-request';
 import { OrderActionCreator, OrderRequestBody } from '../../../order';
-import PaymentStrategy from '../payment-strategy';
 
-import SquarePaymentForm, {
+import { SquareScriptLoader } from '.';
+import {
     CardData,
     DigitalWalletType,
     NonceGenerationError,
     SquareFormElement,
     SquareFormOptions,
+    SquarePaymentForm,
     SquareValidationErrors
 } from './square-form';
-import SquareScriptLoader from './square-script-loader';
 
 export default class SquarePaymentStrategy extends PaymentStrategy {
     private _paymentForm?: SquarePaymentForm;
@@ -70,46 +71,52 @@ export default class SquarePaymentStrategy extends PaymentStrategy {
     }
 
     execute(payload: OrderRequestBody, options?: PaymentRequestOptions): Promise<InternalCheckoutSelectors> {
-        const { payment, ...order } = payload;
+        const { payment } = payload;
 
         if (!payment || !payment.methodId) {
             throw new MissingDataError(MissingDataErrorType.MissingPaymentMethod);
         }
 
-        if (payment.paymentData && isNonceLike(payment.paymentData)) {
-            const paymentPayload: Payment = {
-                methodId: payment.methodId,
-                paymentData: payment.paymentData,
-            };
+        const { methodId, paymentData } = payment;
 
-            return this._store.dispatch(this._orderActionCreator.submitOrder(order, options))
-                .then(() =>
-                    this._store.dispatch(this._paymentActionCreator.submitPayment(paymentPayload))
-                );
+        if (paymentData && isNonceLike(paymentData)) {
+            const paymentPayload = { methodId, paymentData };
+
+            return this._processPayment(payload, paymentPayload, options);
+
         } else {
-            return new Promise<NonceInstrument>((resolve, reject) => {
-                if (!this._paymentForm) {
-                    throw new NotInitializedError(NotInitializedErrorType.PaymentNotInitialized);
-                }
+            return this._getPaymentData()
+                .then(paymentData => {
+                    const paymentPayload = { methodId, paymentData };
 
-                if (this._deferredRequestNonce) {
-                    this._deferredRequestNonce.reject(new TimeoutError());
-                }
-
-                this._deferredRequestNonce = { resolve, reject };
-                this._paymentForm.requestCardNonce();
-            })
-            .then(paymentData => {
-                const paymentPayload: Payment = {
-                    methodId: payment.methodId,
-                    paymentData,
-                };
-                return this._store.dispatch(this._orderActionCreator.submitOrder(order, options))
-                    .then(() =>
-                        this._store.dispatch(this._paymentActionCreator.submitPayment(paymentPayload))
-                    );
-            });
+                    return this._processPayment(payload, paymentPayload, options);
+                });
         }
+    }
+
+    private _getPaymentData(): Promise<NonceInstrument> {
+        return new Promise<NonceInstrument>((resolve, reject) => {
+            if (!this._paymentForm) {
+                throw new NotInitializedError(NotInitializedErrorType.PaymentNotInitialized);
+            }
+
+            if (this._deferredRequestNonce) {
+                this._deferredRequestNonce.reject(new TimeoutError());
+            }
+
+            this._deferredRequestNonce = { resolve, reject };
+            this._paymentForm.requestCardNonce();
+        });
+    }
+
+    private _processPayment(payload: OrderRequestBody,
+                            paymentPayload: Payment,
+                            options?: PaymentRequestOptions):
+                            Promise<InternalCheckoutSelectors> {
+        return this._store.dispatch(this._orderActionCreator.submitOrder(payload, options))
+            .then(() =>
+                this._store.dispatch(this._paymentActionCreator.submitPayment(paymentPayload))
+            );
     }
 
     private _getFormOptions(options: PaymentInitializeOptions, deferred: DeferredPromise): SquareFormOptions {
@@ -254,11 +261,9 @@ export default class SquarePaymentStrategy extends PaymentStrategy {
     }
 
     private _handleErrors(errors: NonceGenerationError[]) {
-        let messages: string[];
-        messages = [];
-        errors.map(e => messages.push(e.message));
-
-        return messages.join(', ');
+        return errors
+            .map(error => error.message)
+            .join(', ');
     }
 }
 

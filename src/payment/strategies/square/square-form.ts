@@ -1,4 +1,4 @@
-export default interface SquarePaymentForm {
+export interface SquarePaymentForm {
     build(): void;
     requestCardNonce(): void;
     setPostalCode(postalCode: string): void;

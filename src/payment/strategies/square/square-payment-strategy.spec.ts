@@ -4,29 +4,50 @@ import { createRequestSender } from '@bigcommerce/request-sender';
 import { createScriptLoader } from '@bigcommerce/script-loader';
 import { Observable } from 'rxjs';
 
-import { PaymentActionCreator, PaymentInitializeOptions, PaymentRequestSender } from '../..';
+import {
+    createPaymentStrategyRegistry,
+    PaymentActionCreator,
+    PaymentInitializeOptions,
+    PaymentMethod,
+    PaymentMethodActionCreator,
+    PaymentRequestSender,
+    PaymentStrategyActionCreator,
+} from '../..';
 import {
     createCheckoutClient,
     createCheckoutStore,
+    CheckoutActionCreator,
     CheckoutRequestSender,
     CheckoutStore,
     CheckoutValidator,
     InternalCheckoutSelectors
 } from '../../../checkout';
-import { CheckoutActionCreator } from '../../../checkout';
 import { getCheckoutStoreState } from '../../../checkout/checkouts.mock';
-import { NotInitializedError, TimeoutError, UnsupportedBrowserError } from '../../../common/error/errors';
+import {
+    NotInitializedError,
+    TimeoutError,
+    UnsupportedBrowserError
+} from '../../../common/error/errors';
 import { ConfigActionCreator, ConfigRequestSender } from '../../../config';
-import { OrderActionCreator, OrderActionType, OrderRequestBody } from '../../../order';
+import {
+    OrderActionCreator,
+    OrderActionType,
+    OrderRequestBody
+} from '../../../order';
 import { getPaymentMethodsState, getSquare } from '../../../payment/payment-methods.mock';
-import createPaymentStrategyRegistry from '../../create-payment-strategy-registry';
-import { PaymentActionType} from '../../payment-actions';
-import PaymentMethod from '../../payment-method';
-import PaymentMethodActionCreator from '../../payment-method-action-creator';
-import PaymentStrategyActionCreator from '../../payment-strategy-action-creator';
+import { PaymentActionType } from '../../payment-actions';
 
-import SquarePaymentForm, { CardData, DigitalWalletType, SquareFormCallbacks, SquareFormOptions } from './square-form';
-import SquarePaymentStrategy from './square-payment-strategy';
+import {
+    SquarePaymentStrategy,
+    SquareScriptLoader
+} from './';
+import {
+    CardData,
+    DigitalWalletType,
+    SquareFormCallbacks,
+    SquareFormOptions,
+    SquarePaymentForm
+} from './square-form';
 import {
     getCardData,
     getPayloadCreditCard,
@@ -34,7 +55,6 @@ import {
     getPayloadVaulted,
     getSquarePaymentInitializeOptions,
 } from './square-payment-strategy-mock';
-import SquareScriptLoader from './square-script-loader';
 
 describe('SquarePaymentStrategy', () => {
     let callbacks: SquareFormCallbacks;
@@ -180,8 +200,8 @@ describe('SquarePaymentStrategy', () => {
     describe('#execute()', () => {
         let cardData: CardData;
         let payloadCreditCard: OrderRequestBody;
-        let payloadNonce: any;
-        let payloadVaulted: any;
+        let payloadNonce: OrderRequestBody;
+        let payloadVaulted: OrderRequestBody;
 
         beforeEach(() => {
             cardData = getCardData();
@@ -273,28 +293,21 @@ describe('SquarePaymentStrategy', () => {
                 });
 
                 it('places the order with the right arguments', async () => {
-                    const { payment, ...order } = payloadNonce;
-
                     await strategy.execute(payloadNonce, initOptions);
-                    expect(orderActionCreator.submitOrder).toHaveBeenCalledWith(order, initOptions);
+                    expect(orderActionCreator.submitOrder).toHaveBeenCalledWith(payloadNonce, initOptions);
                     expect(store.dispatch).toHaveBeenCalledWith(submitOrderAction);
                 });
 
                 it('calls submit order with the order request information', async () => {
-                    const { order } = payloadNonce;
-                    const expectedOrder = { order };
-
                     await strategy.execute(payloadNonce, initOptions);
 
-                    expect(orderActionCreator.submitOrder).toHaveBeenCalledWith(expectedOrder, initOptions);
+                    expect(orderActionCreator.submitOrder).toHaveBeenCalledWith(payloadNonce, initOptions);
                     expect(store.dispatch).toHaveBeenCalledWith(submitOrderAction);
-                    expect(paymentActionCreator.submitPayment).toHaveBeenCalledWith({ methodId: 'square', paymentData: { nonce: 'nonce' }});
+                    expect(paymentActionCreator.submitPayment).toHaveBeenCalledWith({paymentData: { nonce: 'nonce' },  methodId: 'square'});
                 });
 
                 it('calls submit order with the order request information for credit card', async () => {
                     cardData.digital_wallet_type = DigitalWalletType.none;
-                    const { order } = payloadVaulted;
-                    const expectedOrder = { order, useStoreCredit: true };
 
                     const promise: Promise<InternalCheckoutSelectors> = strategy.execute(payloadVaulted, initOptions);
                     if (callbacks.cardNonceResponseReceived) {
@@ -303,7 +316,7 @@ describe('SquarePaymentStrategy', () => {
                     await promise.then(() => {
                         expect(orderActionCreator.submitOrder).toHaveBeenCalledTimes(1);
                         expect(store.dispatch).toHaveBeenCalledTimes(3);
-                        expect(orderActionCreator.submitOrder).toHaveBeenCalledWith(expectedOrder, initOptions);
+                        expect(orderActionCreator.submitOrder).toHaveBeenCalledWith(payloadVaulted, initOptions);
                         expect(store.dispatch).toHaveBeenCalledWith(submitOrderAction);
                         expect(squareForm.requestCardNonce).toHaveBeenCalledTimes(1);
                         expect(paymentActionCreator.submitPayment).toHaveBeenCalledWith({ methodId: 'square', paymentData: { nonce: 'nonce' }});

@@ -26,17 +26,26 @@ export function getPayloadCreditCard(): OrderRequestBody {
     };
 }
 
-export function getPayloadVaulted() {
+export function getPayloadVaulted(): OrderRequestBody {
     return {
-        ...getVaultedInstrumentRequestBody(),
-        ...getOrderPayload(),
+        useStoreCredit: true,
+        payment:  {
+            paymentData: {
+                instrumentId: 'string',
+            },
+            methodId,
+        },
     };
 }
 
-export function getPayloadNonce() {
+export function getPayloadNonce(): OrderRequestBody {
     return {
-        ...getNonceInstrumentRequestBody(),
-        ...getOrderPayload(),
+        payment: {
+            paymentData: {
+                nonce: 'nonce',
+            },
+            methodId,
+        },
     };
 }
 
@@ -57,37 +66,6 @@ export function getSquarePaymentInitializeOptions(): PaymentInitializeOptions {
                 elementId: 'postalCode',
             },
             onPaymentSelect: () => { },
-        },
-    };
-}
-
-function getOrderPayload() {
-    return {
-        order: {
-            id: 'id',
-        },
-    };
-}
-
-function getNonceInstrumentRequestBody(): OrderRequestBody {
-    return {
-        payment: {
-            paymentData: {
-                nonce: 'nonce',
-            },
-            methodId,
-        },
-    };
-}
-
-function getVaultedInstrumentRequestBody(): OrderRequestBody {
-    return {
-        useStoreCredit: true,
-        payment: {
-            paymentData: {
-                instrumentId: 'string',
-            },
-            methodId,
         },
     };
 }
