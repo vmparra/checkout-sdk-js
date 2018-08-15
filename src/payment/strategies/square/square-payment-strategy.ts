@@ -130,9 +130,11 @@ export default class SquarePaymentStrategy extends PaymentStrategy {
                         this._paymentForm.setPostalCode(billingAddress.postalCode);
                     }
                 },
+
                 unsupportedBrowserDetected: () => {
                     deferred.reject(new UnsupportedBrowserError());
                 },
+
                 cardNonceResponseReceived: (errors?, nonce?, cardData?, billingContact?, shippingContact?) => {
 
                     if (cardData && cardData.digital_wallet_type !== DigitalWalletType.none) {
@@ -143,7 +145,15 @@ export default class SquarePaymentStrategy extends PaymentStrategy {
                         this._cardNonceResponseReceived(nonce, errors);
                     }
                 },
-                methodsSupported: () => {},
+
+                methodsSupported: (methods: any) => {
+                    const masterpassBtn = document.getElementById('sq-masterpass');
+                    if (masterpassBtn !== null) {
+                        if (methods.masterpass === true) {
+                            masterpassBtn.style.display = 'inline-block';
+                        }
+                    }
+                },
 
                 /*
                  * callback function: createPaymentRequest
@@ -194,35 +204,11 @@ export default class SquarePaymentStrategy extends PaymentStrategy {
     }
 
     private _handleSquareValidationErrors(error: SquareValidationErrors) {
-            const errors = Object.keys(error)
-                .map(key => error[key].join(', '))
-                .join(', ');
+        const errors = Object.keys(error)
+            .map(key => error[key].join(', '))
+            .join(', ');
 
-            throw new StandardError(errors);
-        // let messages: string[];
-        // messages = [];
-
-        // if (error.country) {
-        //     error.country.map(e => messages.push(e));
-        // }
-
-        // if (error.region) {
-        //     error.region.map(e => messages.push(e));
-        // }
-
-        // if (error.city) {
-        //     error.city.map(e => messages.push(e));
-        // }
-
-        // if (error.addressLines) {
-        //     error.addressLines.map(e => messages.push(e));
-        // }
-
-        // if (error.postalCode) {
-        //     error.postalCode.map(e => messages.push(e));
-        // }
-
-        // throw new StandardError(messages.join(', '));
+        throw new StandardError(errors);
     }
 
     private _cardNonceResponseReceived(nonce?: string, errors?: NonceGenerationError[]): void {
