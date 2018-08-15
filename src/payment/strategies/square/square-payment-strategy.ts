@@ -209,27 +209,30 @@ export default class SquarePaymentStrategy extends PaymentStrategy {
     }
 
     private _handleSquareValidationErrors(error: SquareValidationErrors) {
+        let messages: string[];
+        messages = [];
+
         if (error.country) {
-            throw new StandardError(error.country.join(','));
+            error.country.map(e => messages.push(e));
         }
 
         if (error.region) {
-            throw new StandardError(error.region.join(','));
+            error.region.map(e => messages.push(e));
         }
 
         if (error.city) {
-            throw new StandardError(error.city.join(','));
+            error.city.map(e => messages.push(e));
         }
 
         if (error.addressLines) {
-            throw new StandardError(error.addressLines.join(','));
+            error.addressLines.map(e => messages.push(e));
         }
 
         if (error.postalCode) {
-            throw new StandardError(error.postalCode.join(','));
+            error.postalCode.map(e => messages.push(e));
         }
 
-        throw new StandardError('Unknown error');
+        throw new StandardError(messages.join(', '));
     }
 
     private _cardNonceResponseReceived(nonce?: string, errors?: NonceGenerationError[]): void {

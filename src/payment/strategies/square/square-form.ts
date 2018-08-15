@@ -29,11 +29,11 @@ export interface NonceGenerationError {
 }
 
 export interface SquareValidationErrors {
-    country: string[];
-    region: string[];
-    city: string[];
-    addressLines: string[];
-    postalCode: string[];
+    country?: string[];
+    region?: string[];
+    city?: string[];
+    addressLines?: string[];
+    postalCode?: string[];
 }
 
 export interface CardData {
