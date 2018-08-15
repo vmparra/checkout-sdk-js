@@ -99,6 +99,10 @@ export interface SquareFormCallbacks {
         cardData?: CardData,
         billingContact?: Contact,
         shippingContact?: Contact): void;
+    methodsSupported?(methods: any): void;
+    createPaymentRequest?(): void;
+    validateShippingContact?(errors: SquareValidationErrors): void;
+
 }
 
 export type SquareFormFactory = (options: SquareFormOptions) => SquarePaymentForm;

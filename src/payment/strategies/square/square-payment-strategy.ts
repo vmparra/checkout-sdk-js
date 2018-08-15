@@ -34,6 +34,7 @@ import {
     SquareScriptLoader,
     SquareValidationErrors
 } from '.';
+import { Contact } from './square-form';
 
 export default class SquarePaymentStrategy extends PaymentStrategy {
     private _paymentForm?: SquarePaymentForm;
@@ -138,7 +139,7 @@ export default class SquarePaymentStrategy extends PaymentStrategy {
                 cardNonceResponseReceived: (errors?, nonce?, cardData?, billingContact?, shippingContact?) => {
 
                     if (cardData && cardData.digital_wallet_type !== DigitalWalletType.none) {
-                        this._setExternalCheckoutData(cardData, nonce)
+                        this._setExternalCheckoutData(nonce, cardData, billingContact, shippingContact)
                             .then(() => this._paymentInstrumentSelected(methodId))
                             .then(() => squareOptions.onPaymentSelect && squareOptions.onPaymentSelect());
                     } else {
@@ -203,12 +204,12 @@ export default class SquarePaymentStrategy extends PaymentStrategy {
         }, { methodId }), { queueId: 'widgetInteraction' });
     }
 
-    private _handleSquareValidationErrors(error: SquareValidationErrors) {
-        const errors = Object.keys(error)
-            .map(key => error[key].join(', '))
+    private _handleSquareValidationErrors(errors: SquareValidationErrors) {
+        const errorMessages = Object.keys(errors)
+            .map(key => errors[key].join(', '))
             .join(', ');
 
-        throw new StandardError(errors);
+        throw new StandardError(errorMessages);
     }
 
     private _cardNonceResponseReceived(nonce?: string, errors?: NonceGenerationError[]): void {
@@ -224,7 +225,7 @@ export default class SquarePaymentStrategy extends PaymentStrategy {
         }
     }
 
-    private _setExternalCheckoutData(cardData: CardData, nonce?: string): Promise<Response> {
+    private _setExternalCheckoutData(nonce?: string, cardData?: CardData, billingContact?: Contact, shippingContact?: Contact): Promise<Response> {
         return this._requestSender.post('/checkout.php', {
             headers: {
                 Accept: 'text/html',
@@ -235,6 +236,8 @@ export default class SquarePaymentStrategy extends PaymentStrategy {
                 provider: 'squarev2',
                 action: 'set_external_checkout',
                 cardData: JSON.stringify(cardData),
+                billingContact: JSON.stringify(billingContact),
+                shippingContact: JSON.stringify(shippingContact),
             }),
         });
     }
