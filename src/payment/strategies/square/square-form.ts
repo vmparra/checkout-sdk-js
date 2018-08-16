@@ -28,15 +28,6 @@ export interface NonceGenerationError {
     field: string;
 }
 
-export interface SquareValidationErrors {
-    country: string[];
-    region: string[];
-    city: string[];
-    addressLines: string[];
-    postalCode: string[];
-    [key: string]: string[];
-}
-
 export interface CardData {
     card_brand: CardBrand;
     last_4: number;
@@ -102,8 +93,6 @@ export interface SquareFormCallbacks {
         shippingContact?: Contact): void;
     methodsSupported?(methods: any): void;
     createPaymentRequest?(): void;
-    validateShippingContact?(errors: SquareValidationErrors): void;
-
 }
 
 export type SquareFormFactory = (options: SquareFormOptions) => SquarePaymentForm;

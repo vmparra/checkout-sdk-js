@@ -32,7 +32,6 @@ import {
     SquareFormOptions,
     SquarePaymentForm,
     SquareScriptLoader,
-    SquareValidationErrors
 } from '.';
 import { Contact } from './square-form';
 
@@ -185,12 +184,6 @@ export default class SquarePaymentStrategy extends PaymentStrategy {
                         },
                     };
                 },
-
-                validateShippingContact: (errors: SquareValidationErrors) => {
-                    if (errors) {
-                        this._handleSquareValidationErrors(errors);
-                    }
-                },
             },
         };
     }
@@ -202,14 +195,6 @@ export default class SquarePaymentStrategy extends PaymentStrategy {
                     this._store.dispatch(this._paymentMethodActionCreator.loadPaymentMethod(methodId)),
                 ]);
         }, { methodId }), { queueId: 'widgetInteraction' });
-    }
-
-    private _handleSquareValidationErrors(errors: SquareValidationErrors) {
-        const errorMessages = Object.keys(errors)
-            .map(key => errors[key].join(', '))
-            .join(', ');
-
-        throw new StandardError(errorMessages);
     }
 
     private _cardNonceResponseReceived(nonce?: string, errors?: NonceGenerationError[]): void {
