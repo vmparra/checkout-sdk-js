@@ -59,14 +59,15 @@ export interface Contact {
 }
 
 export enum CardBrand {
-    americanExpress,
-    discover,
-    discoverDiners,
-    JCB,
-    masterCard,
-    unionPay,
-    unknown,
-    visa,
+    americanExpress = 'AMERICAN_EXPRESS',
+    discover = 'DISCOVER',
+    discoverDiners = 'DISCOVER_DINERS',
+    JCB = 'JCB',
+    masterCard = 'MASTERCARD',
+    unionPay = 'CHINA_UNIONPAY',
+    unknown = 'OTHER_BRAND',
+    visa = 'VISA',
+    squareGift = 'SQUARE_GIFT_CARD',
 }
 
 export enum DigitalWalletType {
