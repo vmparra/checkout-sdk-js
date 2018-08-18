@@ -2,10 +2,20 @@ import { PaymentInitializeOptions } from '../..';
 import { OrderRequestBody } from '../../../order';
 import { getOrderRequestBody } from '../../../order/internal-orders.mock';
 
-import { CardBrand, CardData, DigitalWalletType } from './square-form';
+import { CardBrand, CardData, DigitalWalletType, NonceGenerationError } from './square-form';
 
 const methodId = 'square';
 
+export function getNonceGenerationErrors(): NonceGenerationError[] {
+    return [
+        {
+            type: 'some-type',
+            message: 'some-message',
+            field: 'some-field',
+        },
+    ];
+
+}
 export function getCardData(): CardData {
     return {
         card_brand: CardBrand.masterCard,

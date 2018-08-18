@@ -23,7 +23,7 @@ import {
     InternalCheckoutSelectors
 } from '../../../checkout';
 import { getCheckoutStoreState } from '../../../checkout/checkouts.mock';
-import { NotInitializedError, TimeoutError, UnsupportedBrowserError } from '../../../common/error/errors';
+import { InvalidArgumentError, NotInitializedError, StandardError, TimeoutError, UnsupportedBrowserError } from '../../../common/error/errors';
 import { ConfigActionCreator, ConfigRequestSender } from '../../../config';
 import { OrderActionCreator, OrderActionType, OrderRequestBody } from '../../../order';
 import { getPaymentMethodsState, getSquare } from '../../../payment/payment-methods.mock';
@@ -32,15 +32,16 @@ import { PaymentActionType } from '../../payment-actions';
 import {
     CardData,
     DigitalWalletType,
+    NonceGenerationError,
     SquareFormCallbacks,
     SquareFormOptions,
     SquarePaymentForm,
     SquarePaymentStrategy,
     SquareScriptLoader
 } from './';
-
 import {
     getCardData,
+    getNonceGenerationErrors,
     getPayloadCreditCard,
     getPayloadNonce,
     getPayloadVaulted,
@@ -124,30 +125,23 @@ describe('SquarePaymentStrategy', () => {
             scriptLoader
         );
 
-        jest.spyOn(store, 'dispatch').mockReturnValue(Promise.resolve(store.getState()));
-        jest.spyOn(store.getState().paymentMethods, 'getPaymentMethod').mockReturnValue(paymentMethod);
+        spyOn(store, 'dispatch').and.returnValue(Promise.resolve(store.getState()));
+        spyOn(store.getState().paymentMethods, 'getPaymentMethod').and.returnValue(paymentMethod);
 
-        jest.spyOn(orderActionCreator, 'submitOrder')
-            .mockReturnValue(submitOrderAction);
+        spyOn(orderActionCreator, 'submitOrder').and.returnValue(submitOrderAction);
 
-        jest.spyOn(paymentActionCreator, 'submitPayment')
-            .mockReturnValue(submitPaymentAction);
+        spyOn(paymentActionCreator, 'submitPayment').and.returnValue(submitPaymentAction);
 
-        jest.spyOn(requestSender, 'post')
-            .mockReturnValue(Promise.resolve());
+        spyOn(requestSender, 'post').and.returnValue(Promise.resolve());
 
         jest.spyOn(store, 'dispatch');
 
-        jest.spyOn(scriptLoader, 'load')
-            .mockReturnValue(Promise.resolve(formFactory));
+        spyOn(scriptLoader, 'load').and.returnValue(Promise.resolve(formFactory));
 
         jest.spyOn(squareForm, 'build');
-        jest.spyOn(squareForm, 'requestCardNonce')
-            .mockReturnValue(Promise.resolve());
+        spyOn(squareForm, 'requestCardNonce').and.returnValue(Promise.resolve());
 
-        (scriptLoader.load as jest.Mock).mockClear();
         (squareForm.build as jest.Mock).mockClear();
-        (squareForm.requestCardNonce as jest.Mock).mockClear();
     });
 
     describe('#initialize()', () => {
@@ -155,21 +149,30 @@ describe('SquarePaymentStrategy', () => {
             it('loads script when initializing strategy with required params', async () => {
                 await strategy.initialize(initOptions);
 
+                let container: HTMLDivElement;
+                container = document.createElement('div');
+                container.id = 'sq-masterpass';
+                document.body.appendChild(container);
+
+                if (callbacks.methodsSupported) {
+                    callbacks.methodsSupported({ masterpass: true });
+                }
+
                 expect(scriptLoader.load).toHaveBeenCalledTimes(1);
             });
 
             it('fails to initialize when widget config is missing', async () => {
                 try {
-                    await strategy.initialize({ methodId: paymentMethod.id });
-                } catch (error) {
-                    expect(error.type).toEqual('invalid_argument');
+                    await strategy.initialize({ methodId: 'unknown' });
+                } catch (e) {
+                    expect(e).toBeInstanceOf(InvalidArgumentError);
                 }
             });
         });
 
         describe('when form fails to load', () => {
             beforeEach(() => {
-                jest.spyOn(squareForm, 'build').mockImplementation(() => {
+                spyOn(squareForm, 'build').and.callFake(() => {
                     if (callbacks.unsupportedBrowserDetected) {
                         callbacks.unsupportedBrowserDetected();
                     }
@@ -311,6 +314,37 @@ describe('SquarePaymentStrategy', () => {
                         expect(store.dispatch).toHaveBeenCalledWith(submitOrderAction);
                         expect(squareForm.requestCardNonce).toHaveBeenCalledTimes(1);
                         expect(paymentActionCreator.submitPayment).toHaveBeenCalledWith({ methodId: 'square', paymentData: { nonce: 'nonce' }});
+                    });
+                });
+            });
+
+            describe('when cardNonceResponseReceived returns errors', async () => {
+
+                beforeEach(async () => {
+                    await strategy.initialize(initOptions);
+                });
+
+                it('no deferred promise', () => {
+                    try {
+                        if (callbacks.cardNonceResponseReceived) {
+                            callbacks.cardNonceResponseReceived(getNonceGenerationErrors(), undefined, undefined, undefined, undefined);
+                        }
+                    } catch (e) {
+                        expect(e).toBeTruthy();
+                        expect(e).toBeInstanceOf(StandardError);
+                    }
+                });
+
+                it('triggers onError from the options when there is a payment error', async () => {
+                    cardData.digital_wallet_type = DigitalWalletType.none;
+
+                    const promise: Promise<InternalCheckoutSelectors> = strategy.execute(payloadVaulted, initOptions);
+                    const errors: NonceGenerationError[] = getNonceGenerationErrors();
+                    if (callbacks.cardNonceResponseReceived) {
+                        callbacks.cardNonceResponseReceived(errors, undefined, undefined, undefined, undefined);
+                    }
+                    await promise.catch(m => {
+                        expect(m).toEqual(errors[0].message);
                     });
                 });
             });
