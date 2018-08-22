@@ -48,16 +48,16 @@ export function getPayloadVaulted(): OrderRequestBody {
     };
 }
 
-export function getPayloadNonce(): OrderRequestBody {
-    return {
-        payment: {
-            paymentData: {
-                nonce: 'nonce',
-            },
-            methodId,
-        },
-    };
-}
+// export function getPayloadNonce(): OrderRequestBody {
+//     return {
+//         payment: {
+//             paymentData: {
+//                 nonce: 'nonce',
+//             },
+//             methodId,
+//         },
+//     };
+// }
 
 export function getSquarePaymentInitializeOptions(): PaymentInitializeOptions {
     return {

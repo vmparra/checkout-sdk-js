@@ -91,7 +91,7 @@ export interface SquareFormCallbacks {
         cardData?: CardData,
         billingContact?: Contact,
         shippingContact?: Contact): void;
-    methodsSupported?(methods: any): void;
+    methodsSupported?(methods: { [key: string]: boolean }): void;
     createPaymentRequest?(): void;
 }
 
