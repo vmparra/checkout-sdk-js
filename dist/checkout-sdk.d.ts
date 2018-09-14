@@ -169,7 +169,7 @@ declare interface BraintreePaypalButtonInitializeOptions {
     /**
      * A set of styling options for the checkout button.
      */
-    style?: Pick<PaypalButtonStyleOptions, 'color' | 'shape' | 'size'>;
+    style?: Pick<PaypalButtonStyleOptions, 'layout' | 'size' | 'color' | 'label' | 'shape' | 'tagline' | 'fundingicons'>;
     /**
      * A callback that gets called if unable to authorize and tokenize payment.
      *
@@ -1216,6 +1216,7 @@ declare interface CheckoutSettings {
     enableTermsAndConditions: boolean;
     guestCheckoutEnabled: boolean;
     isCardVaultingEnabled: boolean;
+    isCouponCodeCollapsed: boolean;
     isPaymentRequestEnabled: boolean;
     isPaymentRequestCanMakePaymentEnabled: boolean;
     orderTermsAndConditions: string;
@@ -2366,6 +2367,12 @@ declare interface Locales {
     [key: string]: string;
 }
 
+declare interface NonceGenerationError {
+    type: string;
+    message: string;
+    field: string;
+}
+
 declare interface Order {
     baseAmount: number;
     billingAddress: BillingAddress;
@@ -2530,10 +2537,13 @@ declare interface PaymentSettings {
 }
 
 declare interface PaypalButtonStyleOptions {
+    layout?: 'horizontal' | 'vertical';
     size?: 'small' | 'medium' | 'large' | 'responsive';
     color?: 'gold' | 'blue' | 'silver' | 'black';
-    label?: 'credit' | 'checkout';
+    label?: 'checkout' | 'pay' | 'buynow' | 'paypal' | 'credit';
     shape?: 'pill' | 'rect';
+    tagline?: boolean;
+    fundingicons?: boolean;
 }
 
 declare interface PhysicalItem extends LineItem {
@@ -2675,6 +2685,18 @@ declare interface SquarePaymentInitializeOptions {
     inputStyles?: Array<{
         [key: string]: string;
     }>;
+    /**
+     * Initialize Masterpass placeholder ID
+     */
+    masterpass?: SquareFormElement;
+    /**
+     * A callback that gets called when the customer selects a payment option.
+     */
+    onPaymentSelect?(): void;
+    /**
+     * A callback that gets called when an error occurs in the card nonce generation
+     */
+    onError?(errors?: NonceGenerationError[]): void;
 }
 
 declare class StandardError extends Error {
