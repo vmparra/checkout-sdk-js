@@ -1,5 +1,4 @@
-import PaymentMethod from './payment-method';
-import PaymentMethodState from './payment-method-state';
+import { PaymentMethod, PaymentMethodState } from './';
 
 export function getBraintree(): PaymentMethod {
     return {

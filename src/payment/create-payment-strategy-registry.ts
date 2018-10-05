@@ -269,7 +269,8 @@ export default function createPaymentStrategyRegistry(
                 paymentMethodActionCreator,
                 new GooglePayScriptLoader(scriptLoader),
                 new GooglePayBraintreeInitializer(braintreeSdkCreator),
-                new BillingAddressActionCreator(new BillingAddressRequestSender(requestSender))
+                new BillingAddressActionCreator(new BillingAddressRequestSender(requestSender)),
+                requestSender
             )
         )
     );

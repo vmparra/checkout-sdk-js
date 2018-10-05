@@ -70,7 +70,8 @@ describe('GooglePayPaymentProcessor', () => {
             paymentMethodActionCreator,
             googlePayScriptLoader,
             googlePayInitializer,
-            billingAddressActionCreator
+            billingAddressActionCreator,
+            requestSender
         );
     });
 

@@ -2,42 +2,51 @@ import { createFormPoster } from '@bigcommerce/form-poster';
 import { RequestSender } from '@bigcommerce/request-sender';
 import { getScriptLoader } from '@bigcommerce/script-loader';
 
+import { BillingAddressActionCreator, BillingAddressRequestSender } from '../billing';
 import { CheckoutActionCreator, CheckoutRequestSender, CheckoutStore } from '../checkout';
 import { Registry } from '../common/registry';
 import { ConfigActionCreator, ConfigRequestSender } from '../config';
 import { PaymentMethodActionCreator, PaymentMethodRequestSender } from '../payment';
 import { AmazonPayScriptLoader } from '../payment/strategies/amazon-pay';
-import { createBraintreeVisaCheckoutPaymentProcessor, VisaCheckoutScriptLoader } from '../payment/strategies/braintree';
+import {
+    createBraintreeVisaCheckoutPaymentProcessor,
+    BraintreeScriptLoader,
+    BraintreeSDKCreator,
+    VisaCheckoutScriptLoader
+} from '../payment/strategies/braintree';
 import { ChasePayScriptLoader } from '../payment/strategies/chasepay';
+import { GooglePayBraintreeInitializer, GooglePayPaymentProcessor, GooglePayScriptLoader} from '../payment/strategies/googlepay';
 import { MasterpassScriptLoader } from '../payment/strategies/masterpass';
 import { RemoteCheckoutActionCreator, RemoteCheckoutRequestSender } from '../remote-checkout';
 
-import CustomerActionCreator from './customer-action-creator';
-import CustomerRequestSender from './customer-request-sender';
-import CustomerStrategyActionCreator from './customer-strategy-action-creator';
+import { CustomerActionCreator, CustomerRequestSender, CustomerStrategyActionCreator } from './';
 import {
     AmazonPayCustomerStrategy,
     BraintreeVisaCheckoutCustomerStrategy,
     ChasePayCustomerStrategy,
     CustomerStrategy,
     DefaultCustomerStrategy,
+    GooglePayBraintreeCustomerStrategy,
     MasterpassCustomerStrategy,
+    SquareCustomerStrategy
 } from './strategies';
-import SquareCustomerStrategy from './strategies/square-customer-strategy';
 
 export default function createCustomerStrategyRegistry(
     store: CheckoutStore,
     requestSender: RequestSender
 ): Registry<CustomerStrategy> {
     const registry = new Registry<CustomerStrategy>();
+    const scriptLoader = getScriptLoader();
+    const braintreeScriptLoader = new BraintreeScriptLoader(scriptLoader);
+    const braintreeSdkCreator = new BraintreeSDKCreator(braintreeScriptLoader);
     const checkoutActionCreator = new CheckoutActionCreator(
         new CheckoutRequestSender(requestSender),
         new ConfigActionCreator(new ConfigRequestSender(requestSender))
     );
+    const formPoster = createFormPoster();
     const paymentMethodActionCreator = new PaymentMethodActionCreator(new PaymentMethodRequestSender(requestSender));
     const remoteCheckoutRequestSender = new RemoteCheckoutRequestSender(requestSender);
     const remoteCheckoutActionCreator = new RemoteCheckoutActionCreator(remoteCheckoutRequestSender);
-    const scriptLoader = getScriptLoader();
 
     registry.register('amazon', () =>
         new AmazonPayCustomerStrategy(
@@ -68,7 +77,7 @@ export default function createCustomerStrategyRegistry(
             remoteCheckoutActionCreator,
             new ChasePayScriptLoader(scriptLoader),
             requestSender,
-            createFormPoster()
+            formPoster
         )
     );
 
@@ -85,6 +94,22 @@ export default function createCustomerStrategyRegistry(
             paymentMethodActionCreator,
             remoteCheckoutActionCreator,
             new MasterpassScriptLoader(scriptLoader)
+        )
+    );
+
+    registry.register('googlepaybraintree', () =>
+        new GooglePayBraintreeCustomerStrategy(
+            store,
+            remoteCheckoutActionCreator,
+            new GooglePayPaymentProcessor(
+                store,
+                paymentMethodActionCreator,
+                new GooglePayScriptLoader(scriptLoader),
+                new GooglePayBraintreeInitializer(braintreeSdkCreator),
+                new BillingAddressActionCreator(new BillingAddressRequestSender(requestSender)),
+                requestSender
+            ),
+            formPoster
         )
     );
 

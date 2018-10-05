@@ -90,7 +90,8 @@ describe('GooglePayPaymentStrategy', () => {
             paymentMethodActionCreator,
             googlePayScriptLoader,
             googlePayInitializer,
-            billingAddressActionCreator
+            billingAddressActionCreator,
+            requestSender
         );
 
         strategy = new GooglePayPaymentStrategy(

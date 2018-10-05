@@ -1,4 +1,5 @@
 import { PaymentMethodActionCreator } from '../..';
+import { RequestSender } from '../../../../node_modules/@bigcommerce/request-sender/lib';
 import { BillingAddressActionCreator, BillingAddressUpdateRequestBody } from '../../../billing';
 import { CheckoutStore, InternalCheckoutSelectors } from '../../../checkout';
 import {
@@ -8,6 +9,7 @@ import {
     NotInitializedErrorType,
     StandardError,
 } from '../../../common/error/errors';
+import toFormUrlEncoded from '../../../common/http-request/to-form-url-encoded';
 import { RemoteCheckoutSynchronizationError } from '../../../remote-checkout/errors';
 
 import {
@@ -35,7 +37,8 @@ export default class GooglePayPaymentProcessor {
         private _paymentMethodActionCreator: PaymentMethodActionCreator,
         private _googlePayScriptLoader: GooglePayScriptLoader,
         private _googlePayInitializer: GooglePayInitializer,
-        private _billingAddressActionCreator: BillingAddressActionCreator
+        private _billingAddressActionCreator: BillingAddressActionCreator,
+        private _requestSender: RequestSender
     ) { }
 
     initialize(methodId: string): Promise<void> {
@@ -48,11 +51,13 @@ export default class GooglePayPaymentProcessor {
         return this._googlePayInitializer.teardown();
     }
 
-    createButton(callback: () => {}): HTMLElement {
+    createButton(onClick: () => {},
+                 buttonType: ButtonType = ButtonType.Short,
+                 buttonColor: ButtonColor = ButtonColor.Default): HTMLElement {
         return this._googlePaymentsClient.createButton({
-            buttonColor: ButtonColor.Default,
-            buttonType: ButtonType.Short,
-            onClick: callback,
+            buttonColor,
+            buttonType,
+            onClick,
         });
     }
 
@@ -94,6 +99,11 @@ export default class GooglePayPaymentProcessor {
         });
     }
 
+    handleSuccess(paymentData: GooglePaymentData): Promise<any> {
+        return this._googlePayInitializer.parseResponse(paymentData)
+            .then(tokenizedPayload => this._postForm(tokenizedPayload));
+    }
+
     parseResponse(paymentData: GooglePaymentData): Promise<TokenizePayload> {
         return this._googlePayInitializer.parseResponse(paymentData);
     }
@@ -113,20 +123,27 @@ export default class GooglePayPaymentProcessor {
                     throw new MissingDataError(MissingDataErrorType.MissingCheckout);
                 }
 
-                const testMode = paymentMethod.config.testMode;
+                const { testMode } = paymentMethod.config;
 
                 return Promise.all([
                     this._googlePayScriptLoader.load(),
                     this._googlePayInitializer.initialize(checkout, paymentMethod, hasShippingAddress),
                 ])
                     .then(([googlePay, googlePayPaymentDataRequest]) => {
-                        this._googlePaymentsClient = this._getGooglePaymentsClient(googlePay, testMode);
+                        this._googlePaymentsClient = this._getGooglePaymentsClient(googlePay, true);
                         this._googlePaymentDataRequest = googlePayPaymentDataRequest;
                     })
                     .catch((error: Error) => {
                         throw new StandardError(error.message);
                     });
             });
+    }
+
+    private _getCardInformation(cardInformation: { cardType: string, lastFour: string }) {
+        return {
+            type: cardInformation.cardType,
+            number: cardInformation.lastFour,
+        };
     }
 
     private _getGooglePaymentsClient(google: GooglePaySDK, testMode?: boolean): GooglePayClient {
@@ -155,5 +172,23 @@ export default class GooglePayPaymentProcessor {
             phone: address.phoneNumber,
             customFields: [],
         };
+    }
+
+    private _postForm(postPaymentData: TokenizePayload): Promise<any> {
+        const cardInformation = postPaymentData.details;
+
+        return this._requestSender.post('/checkout.php', {
+            headers: {
+                Accept: 'text/html',
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: toFormUrlEncoded({
+                payment_type: postPaymentData.type,
+                nonce: postPaymentData.nonce,
+                provider: this._methodId,
+                action: 'set_external_checkout',
+                card_information: this._getCardInformation(cardInformation),
+            }),
+        });
     }
 }
