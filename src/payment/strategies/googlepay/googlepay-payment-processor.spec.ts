@@ -1,6 +1,7 @@
 import {createRequestSender, RequestSender} from '@bigcommerce/request-sender';
 import { createScriptLoader } from '@bigcommerce/script-loader';
 
+import { PaymentMethodActionCreator } from '../..';
 import { BillingAddressActionCreator, BillingAddressRequestSender } from '../../../billing';
 import { getCartState } from '../../../cart/carts.mock';
 import { createCheckoutStore, CheckoutStore } from '../../../checkout';
@@ -14,7 +15,7 @@ import {
 } from '../../../common/error/errors';
 import { getConfigState } from '../../../config/configs.mock';
 import { getCustomerState } from '../../../customer/customers.mock';
-import { PaymentMethodActionCreator} from '../../index';
+import { RemoteCheckoutSynchronizationError } from '../../../remote-checkout/errors';
 import PaymentMethod from '../../payment-method';
 import PaymentMethodRequestSender from '../../payment-method-request-sender';
 import { getGooglePay, getPaymentMethodsState } from '../../payment-methods.mock';
@@ -71,8 +72,8 @@ describe('GooglePayPaymentProcessor', () => {
             paymentMethodActionCreator,
             googlePayScriptLoader,
             googlePayInitializer,
-            requestSender,
-            billingAddressActionCreator
+            billingAddressActionCreator,
+            requestSender
         );
     });
 
