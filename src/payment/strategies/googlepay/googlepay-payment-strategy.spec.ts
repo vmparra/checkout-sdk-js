@@ -1,4 +1,4 @@
-import { createRequestSender, RequestSender } from '@bigcommerce/request-sender';
+import { createRequestSender } from '@bigcommerce/request-sender';
 import { createScriptLoader } from '@bigcommerce/script-loader';
 
 import { PaymentInitializeOptions, PaymentMethod, PaymentMethodRequestSender, PaymentRequestSender } from '../..';
@@ -49,7 +49,6 @@ describe('GooglePayPaymentStrategy', () => {
     let paymentActionCreator: PaymentActionCreator;
     let orderActionCreator: OrderActionCreator;
     let googlePayInitializer: GooglePayInitializer;
-    let requestSender: RequestSender;
     let googlePayPaymentProcessor: GooglePayPaymentProcessor;
     let container: HTMLDivElement;
     let walletButton: HTMLAnchorElement;
@@ -64,8 +63,9 @@ describe('GooglePayPaymentStrategy', () => {
             paymentMethods: getPaymentMethodsState(),
         });
 
-        const checkoutRequestSender = new CheckoutRequestSender(createRequestSender());
-        const configRequestSender = new ConfigRequestSender(createRequestSender());
+        const requestSender = createRequestSender();
+        const checkoutRequestSender = new CheckoutRequestSender(requestSender);
+        const configRequestSender = new ConfigRequestSender(requestSender);
         const configActionCreator = new ConfigActionCreator(configRequestSender);
         const paymentMethodRequestSender: PaymentMethodRequestSender = new PaymentMethodRequestSender(requestSender);
         const paymentClient = createPaymentClient(store);
@@ -75,8 +75,7 @@ describe('GooglePayPaymentStrategy', () => {
         const braintreeSdkCreator = new BraintreeSDKCreator(braintreeScriptLoader);
         const billingAddressActionCreator = new BillingAddressActionCreator(new BillingAddressRequestSender(requestSender));
 
-        googlePayScriptLoader = new GooglePayScriptLoader(createScriptLoader());
-        requestSender = createRequestSender();
+        googlePayScriptLoader = new GooglePayScriptLoader(scriptLoader);
         checkoutActionCreator = new CheckoutActionCreator(checkoutRequestSender, configActionCreator);
         paymentMethodActionCreator = new PaymentMethodActionCreator(paymentMethodRequestSender);
         paymentStrategyActionCreator = new PaymentStrategyActionCreator(registry, orderActionCreator);
@@ -93,8 +92,8 @@ describe('GooglePayPaymentStrategy', () => {
             paymentMethodActionCreator,
             googlePayScriptLoader,
             googlePayInitializer,
-            requestSender,
-            billingAddressActionCreator
+            billingAddressActionCreator,
+            requestSender
         );
 
         strategy = new GooglePayPaymentStrategy(
