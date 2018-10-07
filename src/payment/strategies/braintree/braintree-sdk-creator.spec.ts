@@ -2,7 +2,13 @@ import { NotInitializedError } from '../../../common/error/errors';
 import { GooglePayBraintreeSDK } from '../googlepay';
 import { getGooglePayBraintreeMock } from '../googlepay/googlepay.mock';
 
-import { BraintreeClient, BraintreeDataCollector, BraintreeModuleCreator, BraintreeThreeDSecure, BraintreeVisaCheckout } from './braintree';
+import {
+    BraintreeClient,
+    BraintreeDataCollector,
+    BraintreeModuleCreator,
+    BraintreeThreeDSecure,
+    BraintreeVisaCheckout,
+} from './braintree';
 import BraintreeScriptLoader from './braintree-script-loader';
 import BraintreeSDKCreator from './braintree-sdk-creator';
 import {

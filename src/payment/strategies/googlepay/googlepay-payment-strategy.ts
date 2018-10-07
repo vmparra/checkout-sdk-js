@@ -1,12 +1,15 @@
 import { RequestSender } from '@bigcommerce/request-sender';
 
+import { PaymentStrategy } from '../';
 import {
+    Payment,
     PaymentActionCreator,
+    PaymentInitializeOptions,
     PaymentMethodActionCreator,
+    PaymentRequestOptions,
     PaymentStrategyActionCreator
 } from '../..';
-import { InternalCheckoutSelectors } from '../../../checkout';
-import { CheckoutActionCreator, CheckoutStore } from '../../../checkout';
+import { CheckoutActionCreator, CheckoutStore, InternalCheckoutSelectors } from '../../../checkout';
 import { NotInitializedError } from '../../../common/error/errors';
 import {
     InvalidArgumentError,
@@ -17,16 +20,9 @@ import {
 import { toFormUrlEncoded } from '../../../common/http-request';
 import { bindDecorator as bind } from '../../../common/utility';
 import {
-    OrderActionCreator,
-    OrderRequestBody
-} from '../../../order';
-import Payment from '../../payment';
-import {
-    PaymentInitializeOptions,
-    PaymentRequestOptions
-} from '../../payment-request-options';
-import PaymentStrategy from '../payment-strategy';
+    OrderActionCreator, OrderRequestBody } from '../../../order';
 
+import { GooglePayPaymentInitializeOptions, GooglePayPaymentProcessor } from './';
 import {
     GooglePaymentData,
     GooglePayAddress,
@@ -34,8 +30,6 @@ import {
     PaymentMethodData,
     TokenizePayload,
 } from './googlepay';
-import GooglePayPaymentInitializeOptions from './googlepay-initialize-options';
-import GooglePayPaymentProcessor from './googlepay-payment-processor';
 
 export default class GooglePayPaymentStrategy extends PaymentStrategy {
     private _googlePayOptions!: GooglePayPaymentInitializeOptions;
@@ -139,10 +133,6 @@ export default class GooglePayPaymentStrategy extends PaymentStrategy {
                 card_information: this._getCardInformation(cardInformation),
             }),
         }).then(() => {
-            if (!this._methodId) {
-                throw new NotInitializedError(NotInitializedErrorType.PaymentNotInitialized);
-            }
-
             return Promise.all([
                 this._googlePayPaymentProcessor.updateBillingAddress(billingAddress),
                 this._store.dispatch(this._checkoutActionCreator.loadCurrentCheckout()),

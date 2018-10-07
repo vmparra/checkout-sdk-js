@@ -1,13 +1,21 @@
 import { ScriptLoader } from '@bigcommerce/script-loader';
 
-import StandardError from '../../../common/error/errors/standard-error';
+import { StandardError } from '../../../common/error/errors';
 import { GooglePayBraintreeSDK } from '../googlepay';
 
-import { BraintreeClientCreator, BraintreeDataCollector, BraintreeHostWindow, BraintreeModuleCreator, BraintreeThreeDSecure, BraintreeVisaCheckout } from './braintree';
+import {
+    BraintreeClientCreator,
+    BraintreeDataCollector,
+    BraintreeHostWindow,
+    BraintreeModuleCreator,
+    BraintreeThreeDSecure,
+    BraintreeVisaCheckout,
+} from './braintree';
 import BraintreeScriptLoader from './braintree-script-loader';
 import {
     getClientMock,
-    getDataCollectorMock, getGooglePayMock,
+    getDataCollectorMock,
+    getGooglePayMock,
     getModuleCreatorMock,
     getThreeDSecureMock,
     getVisaCheckoutMock,

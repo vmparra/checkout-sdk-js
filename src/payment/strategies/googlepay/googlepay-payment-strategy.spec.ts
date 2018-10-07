@@ -1,6 +1,7 @@
-import {createRequestSender, RequestSender} from '@bigcommerce/request-sender';
+import { createRequestSender, RequestSender } from '@bigcommerce/request-sender';
 import { createScriptLoader } from '@bigcommerce/script-loader';
 
+import { PaymentInitializeOptions, PaymentMethod, PaymentMethodRequestSender, PaymentRequestSender } from '../..';
 import { BillingAddressActionCreator, BillingAddressRequestSender } from '../../../billing';
 import { getCartState } from '../../../cart/carts.mock';
 import {
@@ -23,22 +24,18 @@ import {
     PaymentMethodActionCreator,
     PaymentStrategyActionCreator
 } from '../../../payment';
-import PaymentMethod from '../../payment-method';
-import PaymentMethodRequestSender from '../../payment-method-request-sender';
 import { getGooglePay, getPaymentMethodsState } from '../../payment-methods.mock';
-import { PaymentInitializeOptions } from '../../payment-request-options';
-import PaymentRequestSender from '../../payment-request-sender';
 import { BraintreeScriptLoader, BraintreeSDKCreator } from '../braintree';
 
-import { GooglePaymentData, GooglePayInitializer, TokenizePayload } from './googlepay';
-import GooglePayBraintreeInitializer from './googlepay-braintree-initializer';
-import GooglePayPaymentProcessor from './googlepay-payment-processor';
-import GooglePayPaymentStrategy from './googlepay-payment-strategy';
-import GooglePayScriptLoader from './googlepay-script-loader';
 import {
-    getGoogleOrderRequestBody,
-    getGooglePaymentDataPayload,
-} from './googlepay.mock';
+    GooglePayBraintreeInitializer,
+    GooglePayPaymentProcessor,
+    GooglePayPaymentStrategy,
+    GooglePayScriptLoader
+} from './';
+import { GooglePaymentData, GooglePayInitializer, TokenizePayload } from './googlepay';
+import { getGoogleOrderRequestBody, getGooglePaymentDataPayload } from './googlepay.mock';
+
 
 describe('GooglePayPaymentStrategy', () => {
     let store: CheckoutStore;
@@ -68,7 +65,7 @@ describe('GooglePayPaymentStrategy', () => {
         const checkoutRequestSender = new CheckoutRequestSender(createRequestSender());
         const configRequestSender = new ConfigRequestSender(createRequestSender());
         const configActionCreator = new ConfigActionCreator(configRequestSender);
-        const _requestSender: PaymentMethodRequestSender = new PaymentMethodRequestSender(requestSender);
+        const paymentMethodRequestSender: PaymentMethodRequestSender = new PaymentMethodRequestSender(requestSender);
         const paymentClient = createPaymentClient(store);
         const registry = createPaymentStrategyRegistry(store, paymentClient, requestSender);
         const scriptLoader = createScriptLoader();
@@ -79,7 +76,7 @@ describe('GooglePayPaymentStrategy', () => {
         googlePayScriptLoader = new GooglePayScriptLoader(createScriptLoader());
         requestSender = createRequestSender();
         checkoutActionCreator = new CheckoutActionCreator(checkoutRequestSender, configActionCreator);
-        paymentMethodActionCreator = new PaymentMethodActionCreator(_requestSender);
+        paymentMethodActionCreator = new PaymentMethodActionCreator(paymentMethodRequestSender);
         paymentStrategyActionCreator = new PaymentStrategyActionCreator(registry, orderActionCreator);
         paymentActionCreator = new PaymentActionCreator(new PaymentRequestSender(paymentClient), orderActionCreator);
         orderActionCreator = new OrderActionCreator(

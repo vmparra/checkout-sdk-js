@@ -20,10 +20,10 @@ import {
     GooglePayClient,
     GooglePayInitializer,
     GooglePayPaymentDataRequestV1,
+    GooglePayScriptLoader,
     GooglePaySDK,
     TokenizePayload
-} from './googlepay';
-import GooglePayScriptLoader from './googlepay-script-loader';
+} from './';
 
 export default class GooglePayPaymentProcessor {
     private _googlePaymentsClient!: GooglePayClient;

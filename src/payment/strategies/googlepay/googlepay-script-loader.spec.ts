@@ -1,9 +1,9 @@
 import { ScriptLoader } from '@bigcommerce/script-loader';
 
-import StandardError from '../../../common/error/errors/standard-error';
+import { StandardError } from '../../../common/error/errors';
 
-import {GooglePayHostWindow, GooglePaySDK} from './googlepay';
-import GooglePayScriptLoader from './googlepay-script-loader';
+import { GooglePayScriptLoader } from './';
+import { GooglePayHostWindow, GooglePaySDK } from './googlepay';
 import { getGooglePaySDKMock } from './googlepay.mock';
 
 describe('GooglePayScriptLoader', () => {

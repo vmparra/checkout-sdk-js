@@ -1,12 +1,10 @@
 import { createScriptLoader } from '@bigcommerce/script-loader';
 
-import {MissingDataError, MissingDataErrorType} from '../../../common/error/errors';
-import PaymentMethod from '../../payment-method';
-import BraintreeScriptLoader from '../braintree/braintree-script-loader';
-import BraintreeSDKCreator from '../braintree/braintree-sdk-creator';
+import { PaymentMethod } from '../..';
+import { MissingDataError, MissingDataErrorType } from '../../../common/error/errors';
+import { BraintreeScriptLoader, BraintreeSDKCreator } from '../braintree';
 
-import {GooglePayBraintreeSDK} from './googlepay';
-import GooglePayBraintreeInitializer from './googlepay-braintree-initializer';
+import { GooglePayBraintreeInitializer, GooglePayBraintreeSDK } from './';
 import {
     getCheckoutMock,
     getGooglePaymentDataMock,

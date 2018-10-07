@@ -1,5 +1,5 @@
+import { PaymentMethod } from '../..';
 import { Checkout } from '../../../checkout';
-import PaymentMethod from '../../payment-method';
 import { BraintreeModule, BraintreeModuleCreator } from '../braintree';
 
 export type EnvironmentType = 'PRODUCTION' | 'TEST';
