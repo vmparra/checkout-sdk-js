@@ -1,12 +1,12 @@
-import {Cart} from '../../../cart';
+import { Cart } from '../../../cart';
 import { Checkout } from '../../../checkout';
-import {Coupon} from '../../../coupon';
+import { Coupon } from '../../../coupon';
 import { GiftCertificate } from '../../../coupon';
-import {Customer} from '../../../customer';
-import {Discount} from '../../../discount';
+import { Customer } from '../../../customer';
+import { Discount } from '../../../discount';
 import { OrderRequestBody } from '../../../order';
-import {Consignment} from '../../../shipping';
-import {Tax} from '../../../tax';
+import { Consignment } from '../../../shipping';
+import { Tax } from '../../../tax';
 import PaymentMethod from '../../payment-method';
 import PaymentMethodConfig from '../../payment-method-config';
 
