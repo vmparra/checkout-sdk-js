@@ -7,13 +7,17 @@ import { CheckoutActionCreator, CheckoutRequestSender, CheckoutStore, CheckoutVa
 import { ConfigActionCreator, ConfigRequestSender } from '../config';
 import { OrderActionCreator, OrderRequestSender } from '../order';
 import { RemoteCheckoutActionCreator, RemoteCheckoutRequestSender } from '../remote-checkout';
+import { createShippingStrategyRegistry, ShippingStrategyActionCreator } from '../shipping';
 
-import PaymentActionCreator from './payment-action-creator';
-import PaymentMethodActionCreator from './payment-method-action-creator';
-import PaymentMethodRequestSender from './payment-method-request-sender';
-import PaymentRequestSender from './payment-request-sender';
-import PaymentStrategyActionCreator from './payment-strategy-action-creator';
-import PaymentStrategyRegistry from './payment-strategy-registry';
+import {
+    PaymentActionCreator,
+    PaymentMethodActionCreator,
+    PaymentMethodRequestSender,
+    PaymentRequestSender,
+    PaymentStrategyActionCreator,
+    PaymentStrategyRegistry
+
+ } from './';
 import {
     AfterpayPaymentStrategy,
     AmazonPayPaymentStrategy,
@@ -270,6 +274,7 @@ export default function createPaymentStrategyRegistry(
                 new GooglePayScriptLoader(scriptLoader),
                 new GooglePayBraintreeInitializer(braintreeSdkCreator),
                 new BillingAddressActionCreator(new BillingAddressRequestSender(requestSender)),
+                new ShippingStrategyActionCreator(createShippingStrategyRegistry(store, requestSender)),
                 requestSender
             )
         )

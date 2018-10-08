@@ -18,6 +18,7 @@ import { ChasePayScriptLoader } from '../payment/strategies/chasepay';
 import { GooglePayBraintreeInitializer, GooglePayPaymentProcessor, GooglePayScriptLoader} from '../payment/strategies/googlepay';
 import { MasterpassScriptLoader } from '../payment/strategies/masterpass';
 import { RemoteCheckoutActionCreator, RemoteCheckoutRequestSender } from '../remote-checkout';
+import { createShippingStrategyRegistry, ShippingStrategyActionCreator } from '../shipping';
 
 import { CustomerActionCreator, CustomerRequestSender, CustomerStrategyActionCreator } from './';
 import {
@@ -107,6 +108,7 @@ export default function createCustomerStrategyRegistry(
                 new GooglePayScriptLoader(scriptLoader),
                 new GooglePayBraintreeInitializer(braintreeSdkCreator),
                 new BillingAddressActionCreator(new BillingAddressRequestSender(requestSender)),
+                new ShippingStrategyActionCreator(createShippingStrategyRegistry(store, requestSender)),
                 requestSender
             ),
             formPoster

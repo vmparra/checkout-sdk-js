@@ -1,5 +1,6 @@
 import { PaymentMethodActionCreator } from '../..';
 import { RequestSender } from '../../../../node_modules/@bigcommerce/request-sender/lib';
+import { AddressRequestBody } from '../../../address';
 import { BillingAddressActionCreator, BillingAddressUpdateRequestBody } from '../../../billing';
 import { CheckoutStore, InternalCheckoutSelectors } from '../../../checkout';
 import {
@@ -11,6 +12,7 @@ import {
 } from '../../../common/error/errors';
 import toFormUrlEncoded from '../../../common/http-request/to-form-url-encoded';
 import { RemoteCheckoutSynchronizationError } from '../../../remote-checkout/errors';
+import { ShippingStrategyActionCreator } from '../../../shipping';
 
 import {
     ButtonColor,
@@ -38,6 +40,7 @@ export default class GooglePayPaymentProcessor {
         private _googlePayScriptLoader: GooglePayScriptLoader,
         private _googlePayInitializer: GooglePayInitializer,
         private _billingAddressActionCreator: BillingAddressActionCreator,
+        private _shippingStrategyActionCreator: ShippingStrategyActionCreator,
         private _requestSender: RequestSender
     ) { }
 
@@ -76,6 +79,20 @@ export default class GooglePayPaymentProcessor {
 
         return this._store.dispatch(
             this._billingAddressActionCreator.updateAddress(googlePayAddressMapped)
+        );
+    }
+
+    updateShippingAddress(shippingAddress: GooglePayAddress): Promise<InternalCheckoutSelectors | void> {
+        if (!this._methodId) {
+            throw new RemoteCheckoutSynchronizationError();
+        }
+
+        if (!shippingAddress) {
+            return Promise.resolve();
+        }
+
+        return this._store.dispatch(
+            this._shippingStrategyActionCreator.updateAddress(this._mapGooglePayAddressToShippingAddress(shippingAddress))
         );
     }
 
@@ -159,6 +176,23 @@ export default class GooglePayPaymentProcessor {
     private _mapGooglePayAddressToBillingAddress(address: GooglePayAddress, id: string): BillingAddressUpdateRequestBody {
         return {
             id,
+            firstName: address.name.split(' ').slice(0, -1).join(' '),
+            lastName: address.name.split(' ').slice(-1).join(' '),
+            company: address.companyName,
+            address1: address.address1,
+            address2: address.address2 + address.address3 + address.address4 + address.address5,
+            city: address.locality,
+            stateOrProvince: address.administrativeArea,
+            stateOrProvinceCode: address.administrativeArea,
+            postalCode: address.postalCode,
+            countryCode: address.countryCode,
+            phone: address.phoneNumber,
+            customFields: [],
+        };
+    }
+
+    private _mapGooglePayAddressToShippingAddress(address: GooglePayAddress, id?: string): AddressRequestBody {
+        return {
             firstName: address.name.split(' ').slice(0, -1).join(' '),
             lastName: address.name.split(' ').slice(-1).join(' '),
             company: address.companyName,

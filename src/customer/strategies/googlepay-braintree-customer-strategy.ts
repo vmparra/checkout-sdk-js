@@ -118,15 +118,18 @@ export default class GooglePayBraintreeCustomerStrategy extends CustomerStrategy
         event.preventDefault();
 
         let billingAddress: GooglePayAddress;
+        let shippingAddress: GooglePayAddress;
 
         return this._googlePayPaymentProcessor.displayWallet()
             .then(paymentData => {
                 billingAddress = paymentData.cardInfo.billingAddress;
+                shippingAddress = paymentData.shippingAddress;
                 return this._googlePayPaymentProcessor.handleSuccess(paymentData);
             })
             .then(() => {
             return Promise.all([
                 this._googlePayPaymentProcessor.updateBillingAddress(billingAddress),
+                //this._googlePayPaymentProcessor.updateShippingAddress(shippingAddress),
             ]).then(() => this._onPaymentSelectComplete());
         });
     }

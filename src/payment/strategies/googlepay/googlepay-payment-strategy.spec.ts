@@ -24,6 +24,7 @@ import {
     PaymentMethodActionCreator,
     PaymentStrategyActionCreator
 } from '../../../payment';
+import { createShippingStrategyRegistry, ShippingStrategyActionCreator } from '../../../shipping';
 import { getGooglePay, getPaymentMethodsState } from '../../payment-methods.mock';
 import { BraintreeScriptLoader, BraintreeSDKCreator } from '../braintree';
 
@@ -71,6 +72,7 @@ describe('GooglePayPaymentStrategy', () => {
         const braintreeScriptLoader = new BraintreeScriptLoader(scriptLoader);
         const braintreeSdkCreator = new BraintreeSDKCreator(braintreeScriptLoader);
         const billingAddressActionCreator = new BillingAddressActionCreator(new BillingAddressRequestSender(requestSender));
+        const shippingStrategyActionCreator = new ShippingStrategyActionCreator(createShippingStrategyRegistry(store, requestSender));
 
         googlePayScriptLoader = new GooglePayScriptLoader(createScriptLoader());
         requestSender = createRequestSender();
@@ -91,6 +93,7 @@ describe('GooglePayPaymentStrategy', () => {
             googlePayScriptLoader,
             googlePayInitializer,
             billingAddressActionCreator,
+            shippingStrategyActionCreator,
             requestSender
         );
 
