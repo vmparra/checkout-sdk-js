@@ -71,7 +71,6 @@ export default class GooglePayPaymentStrategy extends PaymentStrategy {
     }
 
     deinitialize(options?: PaymentRequestOptions): Promise<InternalCheckoutSelectors> {
-
         if (this._walletButton) {
             this._walletButton.removeEventListener('click', this._handleWalletButtonClick);
         }
