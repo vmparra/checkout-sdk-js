@@ -14,10 +14,9 @@ import { RemoteCheckoutActionCreator } from '../../remote-checkout';
 import { CustomerStrategy } from './';
 
 export default class GooglePayBraintreeCustomerStrategy extends CustomerStrategy {
-    private _methodId?: string;
     private _walletButton?: HTMLElement;
 
-     constructor(
+    constructor(
         store: CheckoutStore,
         private _remoteCheckoutActionCreator: RemoteCheckoutActionCreator,
         private _googlePayPaymentProcessor: GooglePayPaymentProcessor,
@@ -36,8 +35,6 @@ export default class GooglePayBraintreeCustomerStrategy extends CustomerStrategy
         if (!googlepaybraintree || !methodId) {
             throw new MissingDataError(MissingDataErrorType.MissingPaymentMethod);
         }
-
-        this._methodId = methodId;
 
         return this._googlePayPaymentProcessor.initialize(methodId)
             .then(() => {
@@ -128,8 +125,8 @@ export default class GooglePayBraintreeCustomerStrategy extends CustomerStrategy
             })
             .then(() => {
             return Promise.all([
+                this._googlePayPaymentProcessor.updateShippingAddress(shippingAddress),
                 this._googlePayPaymentProcessor.updateBillingAddress(billingAddress),
-                //this._googlePayPaymentProcessor.updateShippingAddress(shippingAddress),
             ]).then(() => this._onPaymentSelectComplete());
         });
     }

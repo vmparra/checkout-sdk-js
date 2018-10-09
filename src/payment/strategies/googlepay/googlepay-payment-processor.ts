@@ -1,5 +1,5 @@
 import { PaymentMethodActionCreator } from '../..';
-import { RequestSender } from '../../../../node_modules/@bigcommerce/request-sender/lib';
+import { RequestSender, Response } from '../../../../node_modules/@bigcommerce/request-sender/lib';
 import { AddressRequestBody } from '../../../address';
 import { BillingAddressActionCreator, BillingAddressUpdateRequestBody } from '../../../billing';
 import { CheckoutStore, InternalCheckoutSelectors } from '../../../checkout';
@@ -121,10 +121,6 @@ export default class GooglePayPaymentProcessor {
             .then(tokenizedPayload => this._postForm(tokenizedPayload));
     }
 
-    parseResponse(paymentData: GooglePaymentData): Promise<TokenizePayload> {
-        return this._googlePayInitializer.parseResponse(paymentData);
-    }
-
     private _configureWallet(): Promise<void> {
         return this._store.dispatch(this._paymentMethodActionCreator.loadPaymentMethod(this._methodId))
             .then(state => {
@@ -191,7 +187,7 @@ export default class GooglePayPaymentProcessor {
         };
     }
 
-    private _mapGooglePayAddressToShippingAddress(address: GooglePayAddress, id?: string): AddressRequestBody {
+    private _mapGooglePayAddressToShippingAddress(address: GooglePayAddress): AddressRequestBody {
         return {
             firstName: address.name.split(' ').slice(0, -1).join(' '),
             lastName: address.name.split(' ').slice(-1).join(' '),
@@ -208,7 +204,7 @@ export default class GooglePayPaymentProcessor {
         };
     }
 
-    private _postForm(postPaymentData: TokenizePayload): Promise<any> {
+    private _postForm(postPaymentData: TokenizePayload): Promise<Response<any>> {
         const cardInformation = postPaymentData.details;
 
         return this._requestSender.post('/checkout.php', {

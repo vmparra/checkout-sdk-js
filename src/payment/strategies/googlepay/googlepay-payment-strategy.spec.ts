@@ -105,7 +105,6 @@ describe('GooglePayPaymentStrategy', () => {
             paymentActionCreator,
             orderActionCreator,
             googlePayInitializer,
-            requestSender,
             googlePayPaymentProcessor
         );
 
@@ -304,7 +303,7 @@ describe('GooglePayPaymentStrategy', () => {
 
         it('handles wallet button event', async () => {
             spyOn(googlePayPaymentProcessor, 'displayWallet').and.returnValue(Promise.resolve(paymentData));
-            spyOn(googlePayPaymentProcessor, 'parseResponse').and.returnValue(Promise.resolve(tokenizePayload));
+            //spyOn(googlePayPaymentProcessor, 'parseResponse').and.returnValue(Promise.resolve(tokenizePayload));
             spyOn(googlePayPaymentProcessor, 'updateBillingAddress').and.callFake(() => {
                 spyOn(store, 'dispatch').and.callFake(() => {});
             });
@@ -318,7 +317,7 @@ describe('GooglePayPaymentStrategy', () => {
 
         it('misses methodId when handling wallet button event', async () => {
             spyOn(googlePayPaymentProcessor, 'displayWallet').and.returnValue(Promise.resolve(paymentData));
-            spyOn(googlePayPaymentProcessor, 'parseResponse').and.returnValue(Promise.resolve(tokenizePayload));
+            //spyOn(googlePayPaymentProcessor, 'parseResponse').and.returnValue(Promise.resolve(tokenizePayload));
             spyOn(googlePayPaymentProcessor, 'updateBillingAddress').and.callFake(() => {
                 spyOn(store, 'dispatch').and.callFake(() => {});
             });

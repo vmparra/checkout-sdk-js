@@ -192,15 +192,15 @@ describe('GooglePayPaymentProcessor', () => {
         });
     });
 
-    describe('#parseResponse', () => {
-        it('parses response', async () => {
-            spyOn(googlePayInitializer, 'parseResponse');
+    // describe('#parseResponse', () => {
+    //     it('parses response', async () => {
+    //         spyOn(googlePayInitializer, 'parseResponse');
 
-            await processor.parseResponse(getGooglePaymentDataMock());
+    //         await processor.parseResponse(getGooglePaymentDataMock());
 
-            expect(googlePayInitializer.parseResponse).toHaveBeenCalled();
-        });
-    });
+    //         expect(googlePayInitializer.parseResponse).toHaveBeenCalled();
+    //     });
+    // });
 
     describe('#updateBillingAddress', () => {
         beforeEach(() => {

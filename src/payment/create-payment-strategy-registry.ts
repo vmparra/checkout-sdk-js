@@ -267,7 +267,6 @@ export default function createPaymentStrategyRegistry(
             paymentActionCreator,
             orderActionCreator,
             new GooglePayBraintreeInitializer(braintreeSdkCreator),
-            requestSender,
             new GooglePayPaymentProcessor(
                 store,
                 paymentMethodActionCreator,
