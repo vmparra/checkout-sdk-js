@@ -40,8 +40,9 @@ export default function createCustomerStrategyRegistry(
     const scriptLoader = getScriptLoader();
     const braintreeScriptLoader = new BraintreeScriptLoader(scriptLoader);
     const braintreeSdkCreator = new BraintreeSDKCreator(braintreeScriptLoader);
+    const checkoutRequestSender = new CheckoutRequestSender(requestSender);
     const checkoutActionCreator = new CheckoutActionCreator(
-        new CheckoutRequestSender(requestSender),
+        checkoutRequestSender,
         new ConfigActionCreator(new ConfigRequestSender(requestSender))
     );
     const formPoster = createFormPoster();

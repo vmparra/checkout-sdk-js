@@ -1,9 +1,10 @@
 import { createRequestSender } from '@bigcommerce/request-sender';
 import { createScriptLoader } from '@bigcommerce/script-loader';
 
+import { PaymentMethodActionCreator } from '../..';
 import { BillingAddressActionCreator, BillingAddressRequestSender } from '../../../billing';
 import { getCartState } from '../../../cart/carts.mock';
-import { createCheckoutStore, CheckoutStore } from '../../../checkout';
+import { createCheckoutStore, CheckoutRequestSender, CheckoutStore } from '../../../checkout';
 import { getCheckoutState } from '../../../checkout/checkouts.mock';
 import {
     MissingDataError,
@@ -16,7 +17,6 @@ import { getConfigState } from '../../../config/configs.mock';
 import { getCustomerState } from '../../../customer/customers.mock';
 import { RemoteCheckoutSynchronizationError } from '../../../remote-checkout/errors';
 import { createShippingStrategyRegistry, ShippingStrategyActionCreator } from '../../../shipping/';
-import { PaymentMethodActionCreator } from '../../index';
 import PaymentMethod from '../../payment-method';
 import PaymentMethodRequestSender from '../../payment-method-request-sender';
 import { getGooglePay, getPaymentMethodsState } from '../../payment-methods.mock';

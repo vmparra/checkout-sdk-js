@@ -2,6 +2,7 @@ import { createRequestSender, RequestSender } from '@bigcommerce/request-sender'
 
 import { createFormPoster, FormPoster } from '../../../node_modules/@bigcommerce/form-poster';
 
+import { CustomerInitializeOptions } from '../';
 import { getCartState } from '../../cart/carts.mock';
 import { createCheckoutStore, CheckoutStore } from '../../checkout';
 import { getCheckoutState } from '../../checkout/checkouts.mock';
@@ -11,7 +12,6 @@ import { PaymentMethod } from '../../payment';
 import { getPaymentMethodsState } from '../../payment/payment-methods.mock';
 import { GooglePayPaymentProcessor } from '../../payment/strategies/googlepay';
 import { RemoteCheckoutActionCreator, RemoteCheckoutRequestSender } from '../../remote-checkout';
-import { CustomerInitializeOptions } from '../customer-request-options';
 import { getCustomerState } from '../customers.mock';
 
 import { GooglePayBraintreeCustomerStrategy } from '.';
@@ -56,10 +56,6 @@ describe('GooglePayBraintreeCustomerStrategy', () => {
             formPoster
         );
 
-        container = document.createElement('div');
-        container.setAttribute('id', 'googlePayCheckoutButton');
-        document.body.appendChild(container);
-
         jest.spyOn(store, 'dispatch')
             .mockReturnValue(Promise.resolve(store.getState()));
 
@@ -74,10 +70,14 @@ describe('GooglePayBraintreeCustomerStrategy', () => {
 
         jest.spyOn(formPoster, 'postForm')
             .mockReturnValue(Promise.resolve());
+
+        container = document.createElement('div');
+        container.setAttribute('id', 'googlePayCheckoutButton');
+        document.body.appendChild(container);
     });
 
     afterEach(() => {
-       // document.body.removeChild(container);
+       document.body.removeChild(container);
     });
 
     it('creates an instance of GooglePayBraintreeCustomerStrategy', () => {

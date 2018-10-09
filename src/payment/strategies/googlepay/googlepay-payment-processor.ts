@@ -10,7 +10,7 @@ import {
     NotInitializedErrorType,
     StandardError,
 } from '../../../common/error/errors';
-import toFormUrlEncoded from '../../../common/http-request/to-form-url-encoded';
+import { toFormUrlEncoded } from '../../../common/http-request/';
 import { RemoteCheckoutSynchronizationError } from '../../../remote-checkout/errors';
 import { ShippingStrategyActionCreator } from '../../../shipping';
 
@@ -75,7 +75,7 @@ export default class GooglePayPaymentProcessor {
             throw new MissingDataError(MissingDataErrorType.MissingPaymentMethod);
         }
 
-        const googlePayAddressMapped: BillingAddressUpdateRequestBody = this._mapGooglePayAddressToBillingAddress(billingAddress, remoteBillingAddress.id);
+        const googlePayAddressMapped = this._mapGooglePayAddressToBillingAddress(billingAddress, remoteBillingAddress.id);
 
         return this._store.dispatch(
             this._billingAddressActionCreator.updateAddress(googlePayAddressMapped)
@@ -92,7 +92,8 @@ export default class GooglePayPaymentProcessor {
         }
 
         return this._store.dispatch(
-            this._shippingStrategyActionCreator.updateAddress(this._mapGooglePayAddressToShippingAddress(shippingAddress))
+            this._shippingStrategyActionCreator.updateAddress(this._mapGooglePayAddressToShippingAddress(shippingAddress),
+                { methodId: this._methodId}), { queueId: 'shippingStrategy'}
         );
     }
 

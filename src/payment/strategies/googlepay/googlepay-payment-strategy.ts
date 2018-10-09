@@ -1,5 +1,3 @@
-import { RequestSender } from '@bigcommerce/request-sender';
-
 import { PaymentStrategy } from '../';
 import {
     Payment,
@@ -11,15 +9,9 @@ import {
 } from '../..';
 import { CheckoutActionCreator, CheckoutStore, InternalCheckoutSelectors } from '../../../checkout';
 import { NotInitializedError } from '../../../common/error/errors';
-import {
-    InvalidArgumentError,
-    MissingDataError,
-    MissingDataErrorType,
-    NotInitializedErrorType,
-} from '../../../common/error/errors';
+import { InvalidArgumentError, MissingDataError, MissingDataErrorType, NotInitializedErrorType } from '../../../common/error/errors';
 import { bindDecorator as bind } from '../../../common/utility';
-import {
-    OrderActionCreator, OrderRequestBody } from '../../../order';
+import { OrderActionCreator, OrderRequestBody } from '../../../order';
 
 import { GooglePayPaymentInitializeOptions, GooglePayPaymentProcessor } from './';
 import { GooglePaymentData, GooglePayInitializer, PaymentMethodData } from './googlepay';

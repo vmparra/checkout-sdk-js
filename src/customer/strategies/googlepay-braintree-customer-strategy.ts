@@ -1,12 +1,7 @@
-import { CustomerCredentials } from '../';
-import { CustomerInitializeOptions, CustomerRequestOptions } from '../';
+import { CustomerCredentials, CustomerInitializeOptions, CustomerRequestOptions } from '../';
 import { FormPoster } from '../../../node_modules/@bigcommerce/form-poster/lib';
 import { CheckoutStore, InternalCheckoutSelectors } from '../../checkout';
-import {
-    InvalidArgumentError,
-    MissingDataError,
-    MissingDataErrorType,
-    NotImplementedError} from '../../common/error/errors';
+import { InvalidArgumentError, MissingDataError, MissingDataErrorType, NotImplementedError } from '../../common/error/errors';
 import { bindDecorator as bind } from '../../common/utility';
 import { GooglePayAddress, GooglePayPaymentProcessor } from '../../payment/strategies/googlepay';
 import { RemoteCheckoutActionCreator } from '../../remote-checkout';
@@ -88,11 +83,11 @@ export default class GooglePayBraintreeCustomerStrategy extends CustomerStrategy
             throw new InvalidArgumentError('Unable to create sign-in button without valid container ID.');
         }
 
-        const googlePayButton = this._googlePayPaymentProcessor.createButton(() => this._onPaymentSelectComplete);
+        const button = this._googlePayPaymentProcessor.createButton(() => this._onPaymentSelectComplete);
 
-        container.appendChild(googlePayButton);
+        container.appendChild(button);
 
-        return googlePayButton;
+        return button;
     }
 
     private _onPaymentSelectComplete(): void {
@@ -127,7 +122,8 @@ export default class GooglePayBraintreeCustomerStrategy extends CustomerStrategy
             return Promise.all([
                 this._googlePayPaymentProcessor.updateShippingAddress(shippingAddress),
                 this._googlePayPaymentProcessor.updateBillingAddress(billingAddress),
-            ]).then(() => this._onPaymentSelectComplete());
+            ]).then(() => this._onPaymentSelectComplete())
+            .catch(error => this._onError(error));
         });
     }
 }
