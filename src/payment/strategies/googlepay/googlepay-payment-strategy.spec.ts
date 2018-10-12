@@ -34,7 +34,7 @@ import {
     GooglePayPaymentStrategy,
     GooglePayScriptLoader
 } from './';
-import { GooglePaymentData, GooglePayInitializer, TokenizePayload } from './googlepay';
+import { GooglePaymentData, GooglePayInitializer } from './googlepay';
 import { getGoogleOrderRequestBody, getGooglePaymentDataPayload } from './googlepay.mock';
 
 describe('GooglePayPaymentStrategy', () => {
@@ -232,9 +232,6 @@ describe('GooglePayPaymentStrategy', () => {
         });
 
         it('throws and error when payment method is not available', async () => {
-            // const googlePay = getGooglePay();
-            // googlePay.initializationData = {};
-
             spyOn(store.getState().paymentMethods, 'getPaymentMethod').and.returnValue(undefined);
 
             await strategy.initialize(googlePayOptions);
@@ -267,7 +264,6 @@ describe('GooglePayPaymentStrategy', () => {
     describe('#handleWalletButtonClick', () => {
         let googlePayOptions: PaymentInitializeOptions;
         let paymentData: GooglePaymentData;
-        let tokenizePayload: TokenizePayload;
 
         beforeEach(() => {
             googlePayOptions = {
@@ -287,23 +283,10 @@ describe('GooglePayPaymentStrategy', () => {
                 shippingAddress: {},
                 email: 'email',
             } as GooglePaymentData;
-
-            tokenizePayload = {
-                details: {
-                    cardType: 'MasterCard',
-                    lastFour: '4111',
-                    lastTwo: '11',
-                },
-                type: 'AndroidPayCard',
-                nonce: 'nonce',
-                description: '',
-                binData: {},
-            } as TokenizePayload;
         });
 
         it('handles wallet button event', async () => {
             spyOn(googlePayPaymentProcessor, 'displayWallet').and.returnValue(Promise.resolve(paymentData));
-            // spyOn(googlePayPaymentProcessor, 'parseResponse').and.returnValue(Promise.resolve(tokenizePayload));
             spyOn(googlePayPaymentProcessor, 'updateBillingAddress').and.callFake(() => {
                 spyOn(store, 'dispatch').and.callFake(() => {});
             });
@@ -317,7 +300,6 @@ describe('GooglePayPaymentStrategy', () => {
 
         it('misses methodId when handling wallet button event', async () => {
             spyOn(googlePayPaymentProcessor, 'displayWallet').and.returnValue(Promise.resolve(paymentData));
-            // spyOn(googlePayPaymentProcessor, 'parseResponse').and.returnValue(Promise.resolve(tokenizePayload));
             spyOn(googlePayPaymentProcessor, 'updateBillingAddress').and.callFake(() => {
                 spyOn(store, 'dispatch').and.callFake(() => {});
             });

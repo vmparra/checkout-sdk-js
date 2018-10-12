@@ -60,9 +60,11 @@ export default function createPaymentStrategyRegistry(
 ) {
     const registry = new PaymentStrategyRegistry(store, { defaultToken: 'creditcard' });
     const scriptLoader = getScriptLoader();
+    const billingAddressActionCreator = new BillingAddressActionCreator(new BillingAddressRequestSender(requestSender));
     const braintreePaymentProcessor = createBraintreePaymentProcessor(scriptLoader);
     const braintreeScriptLoader = new BraintreeScriptLoader(scriptLoader);
     const braintreeSdkCreator = new BraintreeSDKCreator(braintreeScriptLoader);
+    const googlePayBraintreeInitializer = new GooglePayBraintreeInitializer(braintreeSdkCreator);
 
     const checkoutRequestSender = new CheckoutRequestSender(requestSender);
     const checkoutValidator = new CheckoutValidator(checkoutRequestSender);
@@ -100,9 +102,7 @@ export default function createPaymentStrategyRegistry(
         new AmazonPayPaymentStrategy(
             store,
             orderActionCreator,
-            new BillingAddressActionCreator(
-                new BillingAddressRequestSender(requestSender)
-            ),
+            billingAddressActionCreator,
             remoteCheckoutActionCreator,
             new AmazonPayScriptLoader(scriptLoader)
         )
@@ -266,13 +266,13 @@ export default function createPaymentStrategyRegistry(
             paymentStrategyActionCreator,
             paymentActionCreator,
             orderActionCreator,
-            new GooglePayBraintreeInitializer(braintreeSdkCreator),
+            googlePayBraintreeInitializer,
             new GooglePayPaymentProcessor(
                 store,
                 paymentMethodActionCreator,
                 new GooglePayScriptLoader(scriptLoader),
-                new GooglePayBraintreeInitializer(braintreeSdkCreator),
-                new BillingAddressActionCreator(new BillingAddressRequestSender(requestSender)),
+                googlePayBraintreeInitializer,
+                billingAddressActionCreator,
                 new ShippingStrategyActionCreator(createShippingStrategyRegistry(store, requestSender)),
                 requestSender
             )

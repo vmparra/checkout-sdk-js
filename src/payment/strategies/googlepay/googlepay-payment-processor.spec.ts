@@ -4,7 +4,7 @@ import { createScriptLoader } from '@bigcommerce/script-loader';
 import { PaymentMethodActionCreator } from '../..';
 import { BillingAddressActionCreator, BillingAddressRequestSender } from '../../../billing';
 import { getCartState } from '../../../cart/carts.mock';
-import { createCheckoutStore, CheckoutRequestSender, CheckoutStore } from '../../../checkout';
+import { createCheckoutStore, CheckoutStore } from '../../../checkout';
 import { getCheckoutState } from '../../../checkout/checkouts.mock';
 import {
     MissingDataError,

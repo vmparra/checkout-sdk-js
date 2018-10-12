@@ -93,8 +93,7 @@ export default class GooglePayPaymentProcessor {
 
         return this._store.dispatch(
             this._shippingStrategyActionCreator.updateAddress(this._mapGooglePayAddressToShippingAddress(shippingAddress),
-                { methodId: this._methodId}), { queueId: 'shippingStrategy'}
-        );
+                { methodId: this._methodId }), { queueId: 'shippingStrategy' });
     }
 
     displayWallet(): Promise<GooglePaymentData> {
@@ -144,7 +143,7 @@ export default class GooglePayPaymentProcessor {
                     this._googlePayInitializer.initialize(checkout, paymentMethod, hasShippingAddress),
                 ])
                     .then(([googlePay, googlePayPaymentDataRequest]) => {
-                        this._googlePaymentsClient = this._getGooglePaymentsClient(googlePay, true);
+                        this._googlePaymentsClient = this._getGooglePaymentsClient(googlePay, testMode);
                         this._googlePaymentDataRequest = googlePayPaymentDataRequest;
                     })
                     .catch((error: Error) => {

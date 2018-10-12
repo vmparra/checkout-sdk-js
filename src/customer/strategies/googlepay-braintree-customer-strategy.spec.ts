@@ -10,7 +10,7 @@ import { InvalidArgumentError, MissingDataError } from '../../common/error/error
 import { getConfigState } from '../../config/configs.mock';
 import { PaymentMethod } from '../../payment';
 import { getPaymentMethodsState } from '../../payment/payment-methods.mock';
-import { GooglePayPaymentProcessor } from '../../payment/strategies/googlepay';
+import { GooglePaymentData, GooglePayPaymentProcessor } from '../../payment/strategies/googlepay';
 import { RemoteCheckoutActionCreator, RemoteCheckoutRequestSender } from '../../remote-checkout';
 import { getCustomerState } from '../customers.mock';
 
@@ -27,6 +27,7 @@ describe('GooglePayBraintreeCustomerStrategy', () => {
     let requestSender: RequestSender;
     let store: CheckoutStore;
     let strategy: GooglePayBraintreeCustomerStrategy;
+    let walletButton: HTMLAnchorElement;
 
     beforeEach(() => {
         paymentMethod = getPaymentMethod();
@@ -65,19 +66,27 @@ describe('GooglePayBraintreeCustomerStrategy', () => {
         jest.spyOn(store.getState().paymentMethods, 'getPaymentMethod')
             .mockReturnValue(paymentMethod);
 
-        jest.spyOn(paymentProcessor, 'createButton')
-            .mockReturnValue(container);
-
         jest.spyOn(formPoster, 'postForm')
             .mockReturnValue(Promise.resolve());
 
         container = document.createElement('div');
         container.setAttribute('id', 'googlePayCheckoutButton');
+        walletButton = document.createElement('a');
+        walletButton.setAttribute('id', 'mockButton');
+
+        jest.spyOn(paymentProcessor, 'createButton')
+            .mockReturnValue(walletButton);
+
+        jest.spyOn(walletButton, 'addEventListener');
+
+        jest.spyOn(walletButton, 'removeEventListener');
+
+        container.appendChild(walletButton);
         document.body.appendChild(container);
     });
 
     afterEach(() => {
-       document.body.removeChild(container);
+        document.body.removeChild(container);
     });
 
     it('creates an instance of GooglePayBraintreeCustomerStrategy', () => {
@@ -87,6 +96,14 @@ describe('GooglePayBraintreeCustomerStrategy', () => {
     describe('#initialize()', () => {
 
         describe('Payment method exist', () => {
+
+            it('adds the event listener to the wallet button', async () => {
+                customerInitializeOptions = getCustomerInitilaizeOptions();
+
+                await strategy.initialize(customerInitializeOptions);
+
+                expect(walletButton.addEventListener).toHaveBeenCalled();
+            });
 
             it('Validates if strategy is been initialized', async () => {
                 customerInitializeOptions = getCustomerInitilaizeOptions();
@@ -229,6 +246,44 @@ describe('GooglePayBraintreeCustomerStrategy', () => {
             await strategy.signOut(options);
 
             expect(store.getState).toHaveBeenCalledTimes(3);
+        });
+    });
+
+    describe('#handleWalletButtonClick', () => {
+        let googlePayOptions: CustomerInitializeOptions;
+        let paymentData: GooglePaymentData;
+
+        beforeEach(() => {
+            googlePayOptions = {
+                methodId: 'googlepay',
+                googlepaybraintree: {
+                    container: 'googlePayCheckoutButton',
+                    onError: () => {},
+                    onPaymentSelect: () => {},
+                },
+            };
+
+            paymentData = {
+                cardInfo: {
+                    billingAddress: {},
+                },
+                paymentMethodToken: {},
+                shippingAddress: {},
+                email: 'email',
+            } as GooglePaymentData;
+        });
+
+        it('handles wallet button event', async () => {
+            spyOn(paymentProcessor, 'displayWallet').and.returnValue(Promise.resolve(paymentData));
+            spyOn(paymentProcessor, 'handleSuccess').and.returnValue(Promise.resolve());
+            spyOn(paymentProcessor, 'updateShippingAddress').and.returnValue(Promise.resolve());
+            spyOn(paymentProcessor, 'updateBillingAddress').and.returnValue(Promise.resolve());
+
+            await strategy.initialize(googlePayOptions).then(() => {
+                walletButton.click();
+            });
+
+            expect(paymentProcessor.initialize).toHaveBeenCalled();
         });
     });
 });
