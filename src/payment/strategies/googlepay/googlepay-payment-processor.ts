@@ -12,7 +12,7 @@ import {
 } from '../../../common/error/errors';
 import { toFormUrlEncoded } from '../../../common/http-request/';
 import { RemoteCheckoutSynchronizationError } from '../../../remote-checkout/errors';
-import { ShippingStrategyActionCreator } from '../../../shipping';
+import { createShippingStrategyRegistry, ShippingStrategyActionCreator } from '../../../shipping';
 
 import {
     ButtonColor,
@@ -33,6 +33,7 @@ export default class GooglePayPaymentProcessor {
     private _googlePaymentsClient!: GooglePayClient;
     private _methodId!: string;
     private _googlePaymentDataRequest!: GooglePayPaymentDataRequestV1;
+    private _shippingStrategyActionCreator: ShippingStrategyActionCreator;
 
     constructor(
         private _store: CheckoutStore,
@@ -40,9 +41,10 @@ export default class GooglePayPaymentProcessor {
         private _googlePayScriptLoader: GooglePayScriptLoader,
         private _googlePayInitializer: GooglePayInitializer,
         private _billingAddressActionCreator: BillingAddressActionCreator,
-        private _shippingStrategyActionCreator: ShippingStrategyActionCreator,
         private _requestSender: RequestSender
-    ) { }
+    ) {
+        this._shippingStrategyActionCreator = new ShippingStrategyActionCreator(createShippingStrategyRegistry(this._store, this._requestSender));
+    }
 
     initialize(methodId: string): Promise<void> {
         this._methodId = methodId;

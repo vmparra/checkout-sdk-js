@@ -1,8 +1,8 @@
 import { createRequestSender, RequestSender } from '@bigcommerce/request-sender';
 
-import { createFormPoster, FormPoster } from '../../../node_modules/@bigcommerce/form-poster';
-
 import { CustomerInitializeOptions } from '../';
+import { createFormPoster, FormPoster } from '../../../node_modules/@bigcommerce/form-poster';
+import { createScriptLoader } from '../../../node_modules/@bigcommerce/script-loader';
 import { getCartState } from '../../cart/carts.mock';
 import { createCheckoutStore, CheckoutStore } from '../../checkout';
 import { getCheckoutState } from '../../checkout/checkouts.mock';
@@ -10,12 +10,12 @@ import { InvalidArgumentError, MissingDataError } from '../../common/error/error
 import { getConfigState } from '../../config/configs.mock';
 import { PaymentMethod } from '../../payment';
 import { getPaymentMethodsState } from '../../payment/payment-methods.mock';
-import { GooglePaymentData, GooglePayPaymentProcessor } from '../../payment/strategies/googlepay';
+import { createGooglePayPaymentProcessor, GooglePaymentData, GooglePayPaymentProcessor } from '../../payment/strategies/googlepay';
 import { RemoteCheckoutActionCreator, RemoteCheckoutRequestSender } from '../../remote-checkout';
 import { getCustomerState } from '../customers.mock';
 
 import { GooglePayBraintreeCustomerStrategy } from '.';
-import { getCustomerInitilaizeOptions, getGooglePayPaymentProcessor, getPaymentMethod, Mode } from './googlepay-braintree-customer-mock';
+import { getCustomerInitilaizeOptions, getPaymentMethod, Mode } from './googlepay-braintree-customer-mock';
 
 describe('GooglePayBraintreeCustomerStrategy', () => {
     let container: HTMLDivElement;
@@ -46,7 +46,7 @@ describe('GooglePayBraintreeCustomerStrategy', () => {
             new RemoteCheckoutRequestSender(requestSender)
         );
 
-        paymentProcessor = getGooglePayPaymentProcessor(store);
+        paymentProcessor = createGooglePayPaymentProcessor(store, createScriptLoader());
 
         formPoster = createFormPoster();
 

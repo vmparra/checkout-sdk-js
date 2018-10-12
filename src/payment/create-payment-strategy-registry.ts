@@ -7,7 +7,6 @@ import { CheckoutActionCreator, CheckoutRequestSender, CheckoutStore, CheckoutVa
 import { ConfigActionCreator, ConfigRequestSender } from '../config';
 import { OrderActionCreator, OrderRequestSender } from '../order';
 import { RemoteCheckoutActionCreator, RemoteCheckoutRequestSender } from '../remote-checkout';
-import { createShippingStrategyRegistry, ShippingStrategyActionCreator } from '../shipping';
 
 import {
     PaymentActionCreator,
@@ -47,7 +46,8 @@ import {
     VisaCheckoutScriptLoader
 } from './strategies/braintree';
 import { ChasePayPaymentStrategy, ChasePayScriptLoader } from './strategies/chasepay';
-import { GooglePayBraintreeInitializer, GooglePayPaymentProcessor, GooglePayScriptLoader } from './strategies/googlepay';
+import { GooglePayBraintreeInitializer } from './strategies/googlepay';
+import createGooglePayPaymentProcessor from './strategies/googlepay/create-googlepay-payment-processor';
 import { KlarnaScriptLoader } from './strategies/klarna';
 import { PaypalScriptLoader } from './strategies/paypal';
 import { SquareScriptLoader } from './strategies/square';
@@ -254,7 +254,7 @@ export default function createPaymentStrategyRegistry(
             paymentMethodActionCreator,
             paymentStrategyActionCreator,
             requestSender,
-            new ChasePayScriptLoader(getScriptLoader()),
+            new ChasePayScriptLoader(scriptLoader),
             new WepayRiskClient(scriptLoader))
     );
 
@@ -267,15 +267,7 @@ export default function createPaymentStrategyRegistry(
             paymentActionCreator,
             orderActionCreator,
             googlePayBraintreeInitializer,
-            new GooglePayPaymentProcessor(
-                store,
-                paymentMethodActionCreator,
-                new GooglePayScriptLoader(scriptLoader),
-                googlePayBraintreeInitializer,
-                billingAddressActionCreator,
-                new ShippingStrategyActionCreator(createShippingStrategyRegistry(store, requestSender)),
-                requestSender
-            )
+            createGooglePayPaymentProcessor(store, scriptLoader)
         )
     );
 

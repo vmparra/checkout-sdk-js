@@ -16,7 +16,6 @@ import {
 import { getConfigState } from '../../../config/configs.mock';
 import { getCustomerState } from '../../../customer/customers.mock';
 import { RemoteCheckoutSynchronizationError } from '../../../remote-checkout/errors';
-import { createShippingStrategyRegistry, ShippingStrategyActionCreator } from '../../../shipping/';
 import PaymentMethod from '../../payment-method';
 import PaymentMethodRequestSender from '../../payment-method-request-sender';
 import { getGooglePay, getPaymentMethodsState } from '../../payment-methods.mock';
@@ -54,7 +53,6 @@ describe('GooglePayPaymentProcessor', () => {
         const braintreeScriptLoader = new BraintreeScriptLoader(scriptLoader);
         const braintreeSdkCreator = new BraintreeSDKCreator(braintreeScriptLoader);
         billingAddressActionCreator = new BillingAddressActionCreator(new BillingAddressRequestSender(requestSender));
-        const shippingStrategyActionCreator = new ShippingStrategyActionCreator(createShippingStrategyRegistry(store, requestSender));
 
         store = createCheckoutStore({
             checkout: getCheckoutState(),
@@ -73,7 +71,6 @@ describe('GooglePayPaymentProcessor', () => {
             googlePayScriptLoader,
             googlePayInitializer,
             billingAddressActionCreator,
-            shippingStrategyActionCreator,
             requestSender
         );
     });

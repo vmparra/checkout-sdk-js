@@ -1,30 +1,6 @@
 import { CustomerInitializeOptions } from '../';
-import { createRequestSender } from '../../../node_modules/@bigcommerce/request-sender/lib';
-import { getScriptLoader } from '../../../node_modules/@bigcommerce/script-loader/lib/';
-import { BillingAddressActionCreator, BillingAddressRequestSender } from '../../billing';
-import { CheckoutStore } from '../../checkout';
-import { PaymentMethod, PaymentMethodActionCreator, PaymentMethodRequestSender } from '../../payment';
+import { PaymentMethod } from '../../payment';
 import { getGooglePay } from '../../payment/payment-methods.mock';
-import { BraintreeScriptLoader, BraintreeSDKCreator } from '../../payment/strategies/braintree';
-import { GooglePayBraintreeInitializer, GooglePayPaymentProcessor, GooglePayScriptLoader } from '../../payment/strategies/googlepay';
-import { createShippingStrategyRegistry, ShippingStrategyActionCreator } from '../../shipping';
-
-const requestSender = createRequestSender();
-const scriptLoader = getScriptLoader();
-const braintreeSdkCreator = new BraintreeSDKCreator(new BraintreeScriptLoader(scriptLoader));
-
-export function getGooglePayPaymentProcessor(store: CheckoutStore): GooglePayPaymentProcessor {
-
-    return new GooglePayPaymentProcessor(
-        store,
-        new PaymentMethodActionCreator(new PaymentMethodRequestSender(requestSender)),
-        new GooglePayScriptLoader(scriptLoader),
-        new GooglePayBraintreeInitializer(braintreeSdkCreator),
-        new BillingAddressActionCreator(new BillingAddressRequestSender(requestSender)),
-        new ShippingStrategyActionCreator(createShippingStrategyRegistry(store, requestSender)),
-        requestSender
-    );
-}
 
 export function getPaymentMethod(): PaymentMethod {
     return {

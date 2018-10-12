@@ -2,23 +2,16 @@ import { createFormPoster } from '@bigcommerce/form-poster';
 import { RequestSender } from '@bigcommerce/request-sender';
 import { getScriptLoader } from '@bigcommerce/script-loader';
 
-import { BillingAddressActionCreator, BillingAddressRequestSender } from '../billing';
 import { CheckoutActionCreator, CheckoutRequestSender, CheckoutStore } from '../checkout';
 import { Registry } from '../common/registry';
 import { ConfigActionCreator, ConfigRequestSender } from '../config';
 import { PaymentMethodActionCreator, PaymentMethodRequestSender } from '../payment';
 import { AmazonPayScriptLoader } from '../payment/strategies/amazon-pay';
-import {
-    createBraintreeVisaCheckoutPaymentProcessor,
-    BraintreeScriptLoader,
-    BraintreeSDKCreator,
-    VisaCheckoutScriptLoader
-} from '../payment/strategies/braintree';
+import { createBraintreeVisaCheckoutPaymentProcessor, VisaCheckoutScriptLoader } from '../payment/strategies/braintree';
 import { ChasePayScriptLoader } from '../payment/strategies/chasepay';
-import { GooglePayBraintreeInitializer, GooglePayPaymentProcessor, GooglePayScriptLoader} from '../payment/strategies/googlepay';
+import createGooglePayPaymentProcessor from '../payment/strategies/googlepay/create-googlepay-payment-processor';
 import { MasterpassScriptLoader } from '../payment/strategies/masterpass';
 import { RemoteCheckoutActionCreator, RemoteCheckoutRequestSender } from '../remote-checkout';
-import { createShippingStrategyRegistry, ShippingStrategyActionCreator } from '../shipping';
 
 import { CustomerActionCreator, CustomerRequestSender, CustomerStrategyActionCreator } from './';
 import {
@@ -38,8 +31,6 @@ export default function createCustomerStrategyRegistry(
 ): Registry<CustomerStrategy> {
     const registry = new Registry<CustomerStrategy>();
     const scriptLoader = getScriptLoader();
-    const braintreeScriptLoader = new BraintreeScriptLoader(scriptLoader);
-    const braintreeSdkCreator = new BraintreeSDKCreator(braintreeScriptLoader);
     const checkoutRequestSender = new CheckoutRequestSender(requestSender);
     const checkoutActionCreator = new CheckoutActionCreator(
         checkoutRequestSender,
@@ -103,15 +94,7 @@ export default function createCustomerStrategyRegistry(
         new GooglePayBraintreeCustomerStrategy(
             store,
             remoteCheckoutActionCreator,
-            new GooglePayPaymentProcessor(
-                store,
-                paymentMethodActionCreator,
-                new GooglePayScriptLoader(scriptLoader),
-                new GooglePayBraintreeInitializer(braintreeSdkCreator),
-                new BillingAddressActionCreator(new BillingAddressRequestSender(requestSender)),
-                new ShippingStrategyActionCreator(createShippingStrategyRegistry(store, requestSender)),
-                requestSender
-            ),
+            createGooglePayPaymentProcessor(store, scriptLoader),
             formPoster
         )
     );

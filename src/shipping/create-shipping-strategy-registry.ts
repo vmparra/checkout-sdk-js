@@ -18,11 +18,12 @@ export default function createShippingStrategyRegistry(
     const registry = new Registry<ShippingStrategy>();
     const checkoutRequestSender = new CheckoutRequestSender(requestSender);
     const consignmentRequestSender = new ConsignmentRequestSender(requestSender);
+    const consignmentActionCreator = new ConsignmentActionCreator(consignmentRequestSender, checkoutRequestSender);
 
     registry.register('amazon', () =>
         new AmazonPayShippingStrategy(
             store,
-            new ConsignmentActionCreator(consignmentRequestSender, checkoutRequestSender),
+            consignmentActionCreator,
             new PaymentMethodActionCreator(new PaymentMethodRequestSender(requestSender)),
             new RemoteCheckoutActionCreator(new RemoteCheckoutRequestSender(requestSender)),
             new AmazonPayScriptLoader(getScriptLoader())
@@ -30,16 +31,16 @@ export default function createShippingStrategyRegistry(
     );
 
     registry.register('googlepaybraintree', () =>
-    new GooglePayBraintreeShippingStrategy(
-        store,
-        new ConsignmentActionCreator(consignmentRequestSender, checkoutRequestSender)
-    )
-);
+        new GooglePayBraintreeShippingStrategy(
+            store,
+            consignmentActionCreator
+        )
+    );
 
     registry.register('default', () =>
         new DefaultShippingStrategy(
             store,
-            new ConsignmentActionCreator(consignmentRequestSender, checkoutRequestSender)
+            consignmentActionCreator
         )
     );
 
