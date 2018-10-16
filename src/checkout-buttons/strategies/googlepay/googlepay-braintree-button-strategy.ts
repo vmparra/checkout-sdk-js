@@ -4,8 +4,7 @@ import { Checkout, CheckoutActionCreator, CheckoutStore } from '../../../checkou
 import { InvalidArgumentError, MissingDataError, MissingDataErrorType } from '../../../common/error/errors';
 import { bindDecorator as bind } from '../../../common/utility';
 import { PaymentMethodActionCreator } from '../../../payment';
-import { GooglePayAddress } from '../../../payment/strategies/googlepay';
-import GooglePayPaymentProcessor from '../../../payment/strategies/googlepay/googlepay-payment-processor';
+import { GooglePayAddress, GooglePayPaymentProcessor } from '../../../payment/strategies/googlepay';
 import { CheckoutButtonInitializeOptions, CheckoutButtonOptions } from '../../checkout-button-options';
 import CheckoutButtonStrategy from '../checkout-button-strategy';
 
@@ -116,13 +115,13 @@ export default class GooglePayBraintreeButtonStrategy extends CheckoutButtonStra
         }
     }
 
-        private _updateAddressAndPayment(billingAddress: GooglePayAddress, shippingAddress: GooglePayAddress): Promise<void> {
-            return Promise.all([
-                this._googlePayPaymentProcessor.updateBillingAddress(billingAddress),
-                this._googlePayPaymentProcessor.updateShippingAddress(shippingAddress),
-                this._store.dispatch(this._checkoutActionCreator.loadCurrentCheckout()),
-                this._store.dispatch(this._paymentMethodActionCreator.loadPaymentMethod(this._methodId)),
-            ]).then(() => this._onPaymentSelectComplete());
-        }
+    private _updateAddressAndPayment(billingAddress: GooglePayAddress, shippingAddress: GooglePayAddress): Promise<void> {
+        return Promise.all([
+            this._googlePayPaymentProcessor.updateBillingAddress(billingAddress),
+            this._googlePayPaymentProcessor.updateShippingAddress(shippingAddress),
+            this._store.dispatch(this._checkoutActionCreator.loadCurrentCheckout()),
+            this._store.dispatch(this._paymentMethodActionCreator.loadPaymentMethod(this._methodId)),
+        ]).then(() => this._onPaymentSelectComplete());
+    }
 
 }

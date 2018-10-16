@@ -8,8 +8,7 @@ import { Registry } from '../common/registry';
 import { ConfigActionCreator, ConfigRequestSender } from '../config';
 import { PaymentMethodActionCreator, PaymentMethodRequestSender } from '../payment';
 import { BraintreeScriptLoader, BraintreeSDKCreator } from '../payment/strategies/braintree';
-import { GooglePayBraintreeInitializer, GooglePayScriptLoader } from '../payment/strategies/googlepay';
-import GooglePayPaymentProcessor from '../payment/strategies/googlepay/googlepay-payment-processor';
+import { GooglePayBraintreeInitializer, GooglePayPaymentProcessor, GooglePayScriptLoader } from '../payment/strategies/googlepay';
 import { PaypalScriptLoader } from '../payment/strategies/paypal';
 
 import { BraintreePaypalButtonStrategy, CheckoutButtonStrategy, GooglePayBraintreeButtonStrategy } from './strategies';

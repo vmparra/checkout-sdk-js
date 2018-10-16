@@ -1,9 +1,6 @@
 import { StandardError } from '../../../common/error/errors';
 import { BraintreeError } from '../../../payment/strategies/braintree';
-
-export type EnvironmentType = 'PRODUCTION' | 'TEST';
-export type ButtonColorType = 'black' | 'white';
-export type ButtonTypeType = 'long' | 'short';
+import { ButtonColor, ButtonType, EnvironmentType } from '../../../payment/strategies/googlepay/googlepay';
 
 export interface GooglePayBraintreeButtonInitializeOptions {
     /**
@@ -21,7 +18,7 @@ export interface GooglePayBraintreeButtonInitializeOptions {
      *  black (default): a black button suitable for use on white or light backgrounds.
      *  white: a white button suitable for use on colorful backgrounds.
      */
-    buttonColor?: ButtonColorType;
+    buttonColor?: ButtonColor;
 
     /**
      * The size of the GooglePay button that will be inserted.
@@ -29,7 +26,7 @@ export interface GooglePayBraintreeButtonInitializeOptions {
      *         if a language specified in the viewer's browser matches an available language.
      *  short: Google Pay payment button without the "Buy with" text.
      */
-    buttonType?: ButtonTypeType;
+    buttonType?: ButtonType;
 
     /**
      * A callback that gets called if unable to authorize and tokenize payment.
