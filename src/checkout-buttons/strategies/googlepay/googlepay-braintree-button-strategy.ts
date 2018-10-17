@@ -126,7 +126,7 @@ export default class GooglePayBraintreeButtonStrategy extends CheckoutButtonStra
     }
 
     private _onError(error?: Error): void {
-        if (error) {
+        if (error && error.message !== 'CANCELED') {
             throw new Error(error.message);
         }
     }
