@@ -9,7 +9,7 @@ import { CheckoutButtonInitializeOptions, CheckoutButtonOptions } from '../../ch
 import CheckoutButtonStrategy from '../checkout-button-strategy';
 
 export default class GooglePayBraintreeButtonStrategy extends CheckoutButtonStrategy {
-    private _methodId!: string;
+    private _methodId?: string;
     private _checkout?: Checkout;
     private _walletButton?: HTMLElement;
 
@@ -30,11 +30,11 @@ export default class GooglePayBraintreeButtonStrategy extends CheckoutButtonStra
 
         const { googlepaybraintree, methodId } = options;
 
-        if (!googlepaybraintree || !methodId) {
+        this.methodId = methodId;
+
+        if (!googlepaybraintree) {
             throw new MissingDataError(MissingDataErrorType.MissingPaymentMethod);
         }
-
-        this._methodId = methodId;
 
         return this._store.dispatch(this._checkoutActionCreator.loadDefaultCheckout())
             .then(stateCheckout => {
@@ -43,7 +43,7 @@ export default class GooglePayBraintreeButtonStrategy extends CheckoutButtonStra
                     throw new MissingDataError(MissingDataErrorType.MissingCart);
                 }
 
-                return this._googlePayPaymentProcessor.initialize(methodId)
+                return this._googlePayPaymentProcessor.initialize(this.methodId)
                     .then(() => {
                         this._walletButton = this._createSignInButton(googlepaybraintree.container);
 
@@ -67,6 +67,22 @@ export default class GooglePayBraintreeButtonStrategy extends CheckoutButtonStra
 
         return this._googlePayPaymentProcessor.deinitialize()
             .then(() => super.deinitialize(options));
+    }
+
+    private get methodId(): string {
+        if (!this._methodId) {
+            throw new MissingDataError(MissingDataErrorType.MissingPaymentMethod);
+        }
+
+        return this._methodId;
+    }
+
+    private set methodId(value: string) {
+        if (!value) {
+            throw new InvalidArgumentError();
+        }
+
+        this._methodId = value;
     }
 
     private _createSignInButton(containerId: string): HTMLElement {
@@ -120,7 +136,7 @@ export default class GooglePayBraintreeButtonStrategy extends CheckoutButtonStra
             this._googlePayPaymentProcessor.updateBillingAddress(billingAddress),
             this._googlePayPaymentProcessor.updateShippingAddress(shippingAddress),
             this._store.dispatch(this._checkoutActionCreator.loadCurrentCheckout()),
-            this._store.dispatch(this._paymentMethodActionCreator.loadPaymentMethod(this._methodId)),
+            this._store.dispatch(this._paymentMethodActionCreator.loadPaymentMethod(this.methodId)),
         ]).then(() => this._onPaymentSelectComplete());
     }
 
