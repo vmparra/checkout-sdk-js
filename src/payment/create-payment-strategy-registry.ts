@@ -38,15 +38,8 @@ import {
 } from './strategies';
 import { AfterpayScriptLoader } from './strategies/afterpay';
 import { AmazonPayScriptLoader } from './strategies/amazon-pay';
-import {
-    createBraintreePaymentProcessor,
-    createBraintreeVisaCheckoutPaymentProcessor,
-    BraintreeScriptLoader,
-    BraintreeSDKCreator,
-    VisaCheckoutScriptLoader
-} from './strategies/braintree';
+import { createBraintreePaymentProcessor, createBraintreeVisaCheckoutPaymentProcessor, VisaCheckoutScriptLoader } from './strategies/braintree';
 import { ChasePayPaymentStrategy, ChasePayScriptLoader } from './strategies/chasepay';
-import { GooglePayBraintreeInitializer } from './strategies/googlepay';
 import createGooglePayPaymentProcessor from './strategies/googlepay/create-googlepay-payment-processor';
 import { KlarnaScriptLoader } from './strategies/klarna';
 import { MasterpassPaymentStrategy, MasterpassScriptLoader } from './strategies/masterpass';
@@ -63,9 +56,6 @@ export default function createPaymentStrategyRegistry(
     const scriptLoader = getScriptLoader();
     const billingAddressActionCreator = new BillingAddressActionCreator(new BillingAddressRequestSender(requestSender));
     const braintreePaymentProcessor = createBraintreePaymentProcessor(scriptLoader);
-    const braintreeScriptLoader = new BraintreeScriptLoader(scriptLoader);
-    const braintreeSdkCreator = new BraintreeSDKCreator(braintreeScriptLoader);
-    const googlePayBraintreeInitializer = new GooglePayBraintreeInitializer(braintreeSdkCreator);
 
     const checkoutRequestSender = new CheckoutRequestSender(requestSender);
     const checkoutValidator = new CheckoutValidator(checkoutRequestSender);
@@ -267,7 +257,6 @@ export default function createPaymentStrategyRegistry(
             paymentStrategyActionCreator,
             paymentActionCreator,
             orderActionCreator,
-            googlePayBraintreeInitializer,
             createGooglePayPaymentProcessor(store, scriptLoader)
         )
     );
