@@ -213,7 +213,6 @@ describe('GooglePayBraintreeCheckoutButtonStrategy', () => {
             spyOn(paymentProcessor, 'displayWallet').and.returnValue(Promise.resolve(paymentData));
             spyOn(paymentProcessor, 'handleSuccess').and.returnValue(Promise.resolve());
             spyOn(paymentProcessor, 'updateShippingAddress').and.returnValue(Promise.resolve());
-            spyOn(paymentProcessor, 'updateBillingAddress').and.returnValue(Promise.resolve());
 
             await strategy.initialize(googlePayOptions).then(() => {
                 walletButton.click();
