@@ -38,6 +38,7 @@ export function getPaymentMethod(): PaymentMethod {
 export enum Mode {
     Full,
     UndefinedMethodId,
+    UndefinedContainer,
     InvalidContainer,
     Incomplete,
 }
@@ -46,8 +47,10 @@ export function getCheckoutButtonOptions(mode: Mode = Mode.Full): CheckoutButton
     const methodId = { methodId: 'googlepay' };
     const undefinedMethodId = { methodId: '' };
     const container = { container: 'googlePayCheckoutButton' };
+    const undefinedContainer = { container: '' };
     const invalidContainer = { container: 'invalid_container' };
     const googlepay = { googlepaybraintree: { ...container } };
+    const googlepayWithUndefinedContainer = { googlepaybraintree: { ...undefinedContainer } };
     const googlepayWithInvalidContainer = { googlepaybraintree: { ...invalidContainer } };
 
     switch (mode) {
@@ -56,6 +59,9 @@ export function getCheckoutButtonOptions(mode: Mode = Mode.Full): CheckoutButton
         }
         case Mode.UndefinedMethodId: {
             return { ...undefinedMethodId };
+        }
+        case Mode.UndefinedContainer: {
+            return { ...methodId, ...googlepayWithUndefinedContainer };
         }
         case Mode.InvalidContainer: {
             return { ...methodId, ...googlepayWithInvalidContainer };
