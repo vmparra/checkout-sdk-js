@@ -145,6 +145,16 @@ describe('GooglePayBraintreeCheckoutButtonStrategy', () => {
                 }
             });
 
+            it('fails to initialize the strategy if no container id is supplied', async () => {
+                checkoutButtonOptions = getCheckoutButtonOptions(Mode.UndefinedMethodId);
+
+                try {
+                    await strategy.initialize(checkoutButtonOptions);
+                } catch (e) {
+                    expect(e).toBeInstanceOf(InvalidArgumentError);
+                }
+            });
+
             it('fails to initialize the strategy if no valid container id is supplied', async () => {
                 checkoutButtonOptions = getCheckoutButtonOptions(Mode.InvalidContainer);
 
