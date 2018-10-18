@@ -119,12 +119,9 @@ export default class GooglePayBraintreeCustomerStrategy extends CustomerStrategy
                 shippingAddress = paymentData.shippingAddress;
                 return this._googlePayPaymentProcessor.handleSuccess(paymentData);
             })
-            .then(() => {
-            return Promise.all([
-                this._googlePayPaymentProcessor.updateShippingAddress(shippingAddress),
-                this._googlePayPaymentProcessor.updateBillingAddress(billingAddress),
-            ]).then(() => this._onPaymentSelectComplete())
-            .catch(error => this._onError(error));
-        });
+            .then(() =>  this._googlePayPaymentProcessor.updateShippingAddress(shippingAddress)
+            .then(() => this._onPaymentSelectComplete())
+            .catch(error => this._onError(error))
+        );
     }
 }

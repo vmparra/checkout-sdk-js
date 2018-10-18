@@ -266,7 +266,6 @@ export default function createPaymentStrategyRegistry(
             paymentStrategyActionCreator,
             paymentActionCreator,
             orderActionCreator,
-            googlePayBraintreeInitializer,
             createGooglePayPaymentProcessor(store, scriptLoader)
         )
     );
