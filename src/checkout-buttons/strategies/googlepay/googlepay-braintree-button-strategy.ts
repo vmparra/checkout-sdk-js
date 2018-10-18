@@ -103,16 +103,14 @@ export default class GooglePayBraintreeButtonStrategy extends CheckoutButtonStra
     private _handleWalletButtonClick(event: Event): Promise<void> {
         event.preventDefault();
 
-        let billingAddress: GooglePayAddress;
         let shippingAddress: GooglePayAddress;
 
         return this._googlePayPaymentProcessor.displayWallet()
             .then(paymentData => {
-                billingAddress = paymentData.cardInfo.billingAddress;
                 shippingAddress = paymentData.shippingAddress;
                 return this._googlePayPaymentProcessor.handleSuccess(paymentData);
             })
-            .then(() => this._updateAddressAndPayment(billingAddress, shippingAddress))
+            .then(() => this._updateAddressAndPayment(shippingAddress))
             .catch(error => this._onError(error));
     }
 
@@ -131,9 +129,8 @@ export default class GooglePayBraintreeButtonStrategy extends CheckoutButtonStra
         }
     }
 
-    private _updateAddressAndPayment(billingAddress: GooglePayAddress, shippingAddress: GooglePayAddress): Promise<void> {
+    private _updateAddressAndPayment(shippingAddress: GooglePayAddress): Promise<void> {
         return Promise.all([
-            this._googlePayPaymentProcessor.updateBillingAddress(billingAddress),
             this._googlePayPaymentProcessor.updateShippingAddress(shippingAddress),
             this._store.dispatch(this._checkoutActionCreator.loadCurrentCheckout()),
             this._store.dispatch(this._paymentMethodActionCreator.loadPaymentMethod(this.methodId)),
