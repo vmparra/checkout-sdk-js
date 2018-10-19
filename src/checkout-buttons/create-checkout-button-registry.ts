@@ -8,6 +8,7 @@ import { Registry } from '../common/registry';
 import { ConfigActionCreator, ConfigRequestSender } from '../config';
 import { PaymentMethodActionCreator, PaymentMethodRequestSender } from '../payment';
 import { BraintreeScriptLoader, BraintreeSDKCreator } from '../payment/strategies/braintree';
+
 import {
     GooglePayBraintreeInitializer,
     GooglePayPaymentProcessor,
@@ -16,11 +17,7 @@ import {
 import { MasterpassScriptLoader } from '../payment/strategies/masterpass';
 import { PaypalScriptLoader } from '../payment/strategies/paypal';
 
-<<<<<<< HEAD
-import { BraintreePaypalButtonStrategy, CheckoutButtonMethodType, CheckoutButtonStrategy, MasterpassButtonStrategy } from './strategies';
-=======
-import { BraintreePaypalButtonStrategy, CheckoutButtonStrategy, GooglePayBraintreeButtonStrategy, MasterpassButtonStrategy } from './strategies';
->>>>>>> feat(payment): INT-838 [NGCheckout] Add Google Pay button to Cart Page (#9)
+import { BraintreePaypalButtonStrategy, CheckoutButtonMethodType, CheckoutButtonStrategy, GooglePayBraintreeButtonStrategy, MasterpassButtonStrategy } from './strategies';
 
 export default function createCheckoutButtonRegistry(
     store: CheckoutStore,
