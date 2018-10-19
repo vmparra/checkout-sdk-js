@@ -43,13 +43,13 @@ export default class GooglePayPaymentStrategy extends PaymentStrategy {
     initialize(options: PaymentInitializeOptions): Promise<InternalCheckoutSelectors> {
         this._methodId = options.methodId;
 
-        this._googlePayOptions = options.googlepay;
-
         return this._googlePayPaymentProcessor.initialize(this._methodId)
             .then(() => {
                 if (!options.googlepay) {
                     throw new InvalidArgumentError('Unable to initialize payment because "options.googlepay" argument is not provided.');
                 }
+
+                this._googlePayOptions = options.googlepay;
 
                 const walletButton = options.googlepay.walletButton && document.getElementById(options.googlepay.walletButton);
 

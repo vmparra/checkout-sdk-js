@@ -8,7 +8,7 @@ type TotalPriceStatus = 'ESTIMATED' | 'FINAL' | 'NOT_CURRENTLY_KNOWN';
 type TokenizeType = 'AndroidPayCard' | 'CreditCard';
 
 export interface GooglePayInitializer {
-    initialize(checkout: Checkout, paymentMethod: PaymentMethod, hasShippingAddress: boolean, publishableKey?: string): Promise<GooglePayPaymentDataRequestV1>;
+    initialize(checkout: Checkout, paymentMethod: PaymentMethod, hasShippingAddress: boolean, publishableKey?: string): Promise<GooglePayPaymentDataRequestV2>;
     teardown(): Promise<void>;
     parseResponse(paymentData: GooglePaymentData): Promise<TokenizePayload>;
 }
@@ -19,9 +19,11 @@ export interface GooglePayPaymentOptions {
     environment: EnvironmentType;
 }
 
-export interface GooglePayDataRequestV1 {
+export interface GooglePayBraintreeDataRequest {
     merchantInfo: {
         authJwt?: string,
+        merchantId?: string,
+        merchantName?: string,
     };
     transactionInfo: {
         currencyCode: string,
@@ -37,7 +39,7 @@ export interface GooglePayDataRequestV1 {
     shippingAddressRequired: boolean;
 }
 
-export interface GooglePayPaymentDataRequestV1 {
+export interface GooglePayBraintreePaymentDataRequestV1 {
     allowedPaymentMethods: string[];
     apiVersion: number;
     cardRequirements: {
@@ -51,7 +53,9 @@ export interface GooglePayPaymentDataRequestV1 {
         startTimeMs: number;
     };
     merchantInfo: {
-        merchantId: string;
+        googleMerchantId: string;
+        googleMerchantName: string;
+        authJwt?: string;
     };
     paymentMethodTokenizationParameters: {
         parameters: {
@@ -65,6 +69,7 @@ export interface GooglePayPaymentDataRequestV1 {
         tokenizationType: string;
     };
     shippingAddressRequired: boolean;
+    phoneNumberRequired: boolean;
     transactionInfo: {
         currencyCode: string;
         totalPrice: string;
@@ -89,7 +94,7 @@ export interface GooglePaySDK {
 
 export interface GooglePayClient {
     isReadyToPay(options: object): Promise<GooglePayIsReadyToPayResponse>;
-    loadPaymentData(paymentDataRequest: GooglePayPaymentDataRequestV1): Promise<GooglePaymentData>;
+    loadPaymentData(paymentDataRequest: GooglePayPaymentDataRequestV2): Promise<GooglePaymentData>;
     createButton(options: { [key: string]: string | object }): HTMLElement;
 }
 
@@ -120,17 +125,20 @@ export interface TokenizePayload {
 }
 
 export interface GooglePaymentData {
-    cardInfo: {
-        cardClass: string;
-        cardDescription: string;
-        cardDetails: string;
-        cardImageUri: string;
-        cardNetwork: string;
-        billingAddress: GooglePayAddress;
-    };
-    paymentMethodToken: {
-        token: string;
-        tokenizationType: string;
+    apiVersion: number;
+    apiVersionMinor: number;
+    paymentMethodData: {
+        description: string;
+        info: {
+            cardDetails: string;
+            cardNetwork: string;
+            billingAddress: GooglePayAddress;
+        };
+        tokenizationData: {
+            token: string;
+            type: string;
+        }
+        type: string;
     };
     shippingAddress: GooglePayAddress;
     email: string;
@@ -140,8 +148,6 @@ export interface GooglePayAddress {
     address1: string;
     address2: string;
     address3: string;
-    address4: string;
-    address5: string;
     administrativeArea: string;
     companyName: string;
     countryCode: string;
@@ -177,4 +183,53 @@ export enum ButtonColor {
     Default = 'default',
     Black = 'black',
     White = 'white',
+}
+
+export interface GooglePayPaymentDataRequestV2 {
+    apiVersion: number;
+    apiVersionMinor: number;
+    merchantInfo: {
+        authJwt?: string;
+        merchantId?: string;
+        merchantName?: string;
+    };
+    allowedPaymentMethods: [{
+        type: string;
+        parameters: {
+            allowedAuthMethods: string[];
+            allowedCardNetworks: string[];
+            allowPrepaidCards?: boolean;
+            billingAddressRequired?: boolean;
+            billingAddressParameters?: {
+                format?: string;
+                phoneNumberRequired?: boolean;
+            };
+        },
+        tokenizationSpecification?: {
+            type: string;
+            parameters: {
+                gateway: string;
+                gatewayMerchantId?: string;
+                'braintree:apiVersion'?: string;
+                'braintree:clientKey'?: string;
+                'braintree:merchantId'?: string;
+                'braintree:sdkVersion'?: string;
+                'braintree:authorizationFingerprint'?: string;
+                'stripe:version'?: string;
+                'stripe.publishableKey'?: string;
+            };
+        };
+    }];
+    transactionInfo: {
+        currencyCode: string;
+        totalPriceStatus: string;
+        totalPrice?: string;
+        checkoutOption?: string;
+    };
+    emailRequired?: boolean;
+    shippingAddressRequired?: boolean;
+    shippingAddressParameters?: {
+        allowedCountryCodes?: string[];
+        phoneNumberRequired?: boolean;
+    };
 }
