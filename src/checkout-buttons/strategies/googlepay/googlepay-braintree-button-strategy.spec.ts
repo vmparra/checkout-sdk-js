@@ -13,6 +13,7 @@ import { getCustomerState } from '../../../customer/customers.mock';
 import { PaymentMethod, PaymentMethodActionCreator, PaymentMethodRequestSender } from '../../../payment';
 import { getPaymentMethodsState } from '../../../payment/payment-methods.mock';
 import { createGooglePayPaymentProcessor, GooglePaymentData, GooglePayPaymentProcessor } from '../../../payment/strategies/googlepay';
+import { getGooglePaymentDataMock } from '../../../payment/strategies/googlepay/googlepay.mock';
 import { CheckoutButtonInitializeOptions } from '../../checkout-button-options';
 
 import { getCheckoutButtonOptions, getPaymentMethod, Mode } from './googlepay-braintree-button.mock';
@@ -219,14 +220,7 @@ describe('GooglePayBraintreeCheckoutButtonStrategy', () => {
                 },
             };
 
-            paymentData = {
-                cardInfo: {
-                    billingAddress: {},
-                },
-                paymentMethodToken: {},
-                shippingAddress: {},
-                email: 'email',
-            } as GooglePaymentData;
+            paymentData = getGooglePaymentDataMock();
         });
 
         it('handles wallet button event', async () => {

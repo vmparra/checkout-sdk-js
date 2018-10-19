@@ -240,7 +240,7 @@ describe('GooglePayPaymentProcessor', () => {
             jest.spyOn(store.getState().billingAddress, 'getBillingAddress').mockReturnValue(getGooglePayAddressMock());
             jest.spyOn(billingAddressActionCreator, 'updateAddress');
             const googlePaymentDataMock = getGooglePaymentDataMock();
-            googlePaymentDataMock.cardInfo.billingAddress = getGooglePayAddressMock();
+            googlePaymentDataMock.paymentMethodData.info.billingAddress = getGooglePayAddressMock();
 
             await processor.initialize('googlepay');
             await processor.handleSuccess(googlePaymentDataMock);
@@ -267,7 +267,7 @@ describe('GooglePayPaymentProcessor', () => {
             jest.spyOn(googlePayInitializer, 'parseResponse').mockReturnValue(Promise.resolve(tokenizePayload));
             jest.spyOn(requestSender, 'post').mockReturnValue(Promise.resolve());
             const googlePaymentDataMock = getGooglePaymentDataMock();
-            googlePaymentDataMock.cardInfo.billingAddress = getGooglePayAddressMock();
+            googlePaymentDataMock.paymentMethodData.info.billingAddress = getGooglePayAddressMock();
 
             await processor.initialize('googlepay');
 

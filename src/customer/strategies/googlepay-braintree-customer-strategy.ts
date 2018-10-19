@@ -101,7 +101,7 @@ export default class GooglePayBraintreeCustomerStrategy extends CustomerStrategy
     }
 
     private _onError(error?: Error): void {
-        if (error) {
+        if (error && error.message !== 'CANCELED') {
             throw new Error(error.message);
         }
     }
@@ -115,7 +115,7 @@ export default class GooglePayBraintreeCustomerStrategy extends CustomerStrategy
         return this._googlePayPaymentProcessor.displayWallet()
             .then(paymentData => {
                 shippingAddress = paymentData.shippingAddress;
-                return this._googlePayPaymentProcessor.handleSuccess(paymentData);
+                this._googlePayPaymentProcessor.handleSuccess(paymentData);
             })
             .then(() =>  this._googlePayPaymentProcessor.updateShippingAddress(shippingAddress)
             .then(() => this._onPaymentSelectComplete())
