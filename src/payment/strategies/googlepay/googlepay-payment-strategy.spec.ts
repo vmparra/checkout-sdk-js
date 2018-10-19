@@ -36,8 +36,8 @@ import {
     GooglePayPaymentStrategy,
     GooglePayScriptLoader
 } from './';
-import { GooglePaymentData, GooglePayInitializer } from './googlepay';
-import { getGoogleOrderRequestBody, getGooglePaymentDataPayload } from './googlepay.mock';
+import { GooglePayInitializer} from './googlepay';
+import { getGoogleOrderRequestBody, getGooglePaymentDataMock, getGooglePaymentDataPayload } from './googlepay.mock';
 
 describe('GooglePayPaymentStrategy', () => {
     let store: CheckoutStore;
@@ -262,14 +262,7 @@ describe('GooglePayPaymentStrategy', () => {
                 },
             };
 
-            const paymentData = {
-                cardInfo: {
-                    billingAddress: {},
-                },
-                paymentMethodToken: {},
-                shippingAddress: {},
-                email: 'email',
-            } as GooglePaymentData;
+            const paymentData = getGooglePaymentDataMock();
 
             jest.spyOn(orderActionCreator, 'submitOrder').mockReturnValue(Promise.resolve());
             jest.spyOn(paymentActionCreator, 'submitPayment').mockReturnValue(Promise.resolve());
@@ -346,14 +339,7 @@ describe('GooglePayPaymentStrategy', () => {
                 },
             };
 
-            const paymentData = {
-                cardInfo: {
-                    billingAddress: {},
-                },
-                paymentMethodToken: {},
-                shippingAddress: {},
-                email: 'email',
-            } as GooglePaymentData;
+            const paymentData = getGooglePaymentDataMock();
 
             jest.spyOn(orderActionCreator, 'submitOrder').mockReturnValue(Promise.resolve());
             jest.spyOn(paymentActionCreator, 'submitPayment').mockReturnValue(Promise.resolve());
@@ -371,14 +357,7 @@ describe('GooglePayPaymentStrategy', () => {
         });
 
         it('gets again the payment information and in getPayment, paymentMethod is missed', async () => {
-            const paymentData = {
-                cardInfo: {
-                    billingAddress: {},
-                },
-                paymentMethodToken: {},
-                shippingAddress: {},
-                email: 'email',
-            } as GooglePaymentData;
+            const paymentData = getGooglePaymentDataMock();
 
             jest.spyOn(orderActionCreator, 'submitOrder').mockReturnValue(Promise.resolve());
             jest.spyOn(paymentActionCreator, 'submitPayment').mockReturnValue(Promise.resolve());
@@ -396,14 +375,7 @@ describe('GooglePayPaymentStrategy', () => {
         });
 
         it('gets again the payment information and in getPayment, nonce is missed', async () => {
-            const paymentData = {
-                cardInfo: {
-                    billingAddress: {},
-                },
-                paymentMethodToken: {},
-                shippingAddress: {},
-                email: 'email',
-            } as GooglePaymentData;
+            const paymentData = getGooglePaymentDataMock();
 
             const googlePaymentMethodData = {
                 initializationData: {

@@ -10,7 +10,8 @@ import { InvalidArgumentError, MissingDataError } from '../../common/error/error
 import { getConfigState } from '../../config/configs.mock';
 import { PaymentMethod } from '../../payment';
 import { getPaymentMethodsState } from '../../payment/payment-methods.mock';
-import { createGooglePayPaymentProcessor, GooglePaymentData, GooglePayPaymentProcessor } from '../../payment/strategies/googlepay';
+import { createGooglePayPaymentProcessor, GooglePayPaymentProcessor } from '../../payment/strategies/googlepay';
+import {getGooglePaymentDataMock} from '../../payment/strategies/googlepay/googlepay.mock';
 import { RemoteCheckoutActionCreator, RemoteCheckoutRequestSender } from '../../remote-checkout';
 import { getCustomerState } from '../customers.mock';
 
@@ -251,7 +252,6 @@ describe('GooglePayBraintreeCustomerStrategy', () => {
 
     describe('#handleWalletButtonClick', () => {
         let googlePayOptions: CustomerInitializeOptions;
-        let paymentData: GooglePaymentData;
 
         beforeEach(() => {
             googlePayOptions = {
@@ -262,19 +262,10 @@ describe('GooglePayBraintreeCustomerStrategy', () => {
                     onPaymentSelect: () => {},
                 },
             };
-
-            paymentData = {
-                cardInfo: {
-                    billingAddress: {},
-                },
-                paymentMethodToken: {},
-                shippingAddress: {},
-                email: 'email',
-            } as GooglePaymentData;
         });
 
         it('handles wallet button event', async () => {
-            spyOn(paymentProcessor, 'displayWallet').and.returnValue(Promise.resolve(paymentData));
+            spyOn(paymentProcessor, 'displayWallet').and.returnValue(Promise.resolve(getGooglePaymentDataMock()));
             spyOn(paymentProcessor, 'handleSuccess').and.returnValue(Promise.resolve());
             spyOn(paymentProcessor, 'updateShippingAddress').and.returnValue(Promise.resolve());
 
