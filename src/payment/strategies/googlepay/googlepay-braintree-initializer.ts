@@ -3,14 +3,16 @@ import {
     MissingDataError,
     MissingDataErrorType
 } from '../../../common/error/errors';
+import StandardError from '../../../common/error/errors/standard-error';
 import PaymentMethod from '../../payment-method';
 import { BraintreeSDKCreator, GooglePayBraintreeSDK } from '../braintree';
 
 import {
     GooglePaymentData,
-    GooglePayDataRequestV1,
+    GooglePayBraintreeDataRequest,
+    GooglePayBraintreePaymentDataRequestV1,
     GooglePayInitializer,
-    GooglePayPaymentDataRequestV1,
+    GooglePayPaymentDataRequestV2,
     TokenizePayload
 } from './googlepay';
 
@@ -25,7 +27,7 @@ export default class GooglePayBraintreeInitializer implements GooglePayInitializ
         checkout: Checkout,
         paymentMethod: PaymentMethod,
         hasShippingAddress: boolean
-    ): Promise<GooglePayPaymentDataRequestV1> {
+    ): Promise<GooglePayPaymentDataRequestV2> {
         if (!paymentMethod.clientToken) {
             throw new MissingDataError(MissingDataErrorType.MissingPaymentMethod);
         }
@@ -38,9 +40,10 @@ export default class GooglePayBraintreeInitializer implements GooglePayInitializ
 
                 return this._createGooglePayPayload(
                     checkout,
-                    paymentMethod.initializationData.platformToken,
-                    hasShippingAddress
-                );
+                    paymentMethod.initializationData,
+                    hasShippingAddress);
+            }).catch((error: Error) => {
+                throw new StandardError(error.message);
             });
     }
 
@@ -49,21 +52,39 @@ export default class GooglePayBraintreeInitializer implements GooglePayInitializ
     }
 
     parseResponse(paymentData: GooglePaymentData): Promise<TokenizePayload> {
-        return this._googlePaymentInstance.parseResponse(paymentData);
+        try {
+            const payload = JSON.parse(paymentData.paymentMethodData.tokenizationData.token).androidPayCards[0];
+
+            return Promise.resolve({
+                nonce: payload.nonce,
+                type: payload.type,
+                description: payload.description,
+                details: {
+                    cardType: payload.details.cardType,
+                    lastFour: payload.details.lastFour,
+                    lastTwo: payload.details.lastTwo,
+                },
+                binData: payload.binData,
+            });
+        } catch (err) {
+            return Promise.reject(err);
+        }
     }
 
     private _createGooglePayPayload(
         checkout: Checkout,
-        platformToken: string,
+        initializationData: any,
         hasShippingAddress: boolean
-    ): GooglePayPaymentDataRequestV1 {
-        if (!platformToken) {
+    ): GooglePayPaymentDataRequestV2 {
+        if (!initializationData.platformToken) {
             throw new MissingDataError(MissingDataErrorType.MissingPaymentMethod);
         }
 
-        const googlePaymentDataRequest: GooglePayDataRequestV1 = {
+        const googlePayBraintreePaymentDataRequest: GooglePayBraintreeDataRequest = {
             merchantInfo: {
-                authJwt: platformToken,
+                authJwt: initializationData.platformToken,
+                merchantName: initializationData.merchantName,
+                merchantId: initializationData.merchantId,
             },
             transactionInfo: {
                 currencyCode: checkout.cart.currency.code,
@@ -79,6 +100,48 @@ export default class GooglePayBraintreeInitializer implements GooglePayInitializ
             phoneNumberRequired: true,
         };
 
-        return this._googlePaymentInstance.createPaymentDataRequest(googlePaymentDataRequest);
+        return this._mapGooglePayBraintreeDataRequestToGooglePayDataRequestV2(
+            this._googlePaymentInstance.createPaymentDataRequest(googlePayBraintreePaymentDataRequest)
+        );
+    }
+
+    private _mapGooglePayBraintreeDataRequestToGooglePayDataRequestV2(googlePayBraintreeDataRequestV1: GooglePayBraintreePaymentDataRequestV1): GooglePayPaymentDataRequestV2 {
+        return {
+            apiVersion: 2,
+            apiVersionMinor: 0,
+            merchantInfo: {
+                authJwt: googlePayBraintreeDataRequestV1.merchantInfo.authJwt,
+                merchantId: googlePayBraintreeDataRequestV1.merchantInfo.googleMerchantId,
+                merchantName: googlePayBraintreeDataRequestV1.merchantInfo.googleMerchantName,
+            },
+            allowedPaymentMethods: [{
+                type: 'CARD',
+                parameters: {
+                    allowedAuthMethods: ['PAN_ONLY', 'CRYPTOGRAM_3DS'],
+                    allowedCardNetworks: googlePayBraintreeDataRequestV1.cardRequirements.allowedCardNetworks,
+                    billingAddressRequired: true,
+                    billingAddressParameters: {
+                        format: 'FULL',
+                        phoneNumberRequired: true,
+                    },
+                },
+                tokenizationSpecification: {
+                    type: 'PAYMENT_GATEWAY',
+                    parameters: {
+                        gateway: 'braintree',
+                        'braintree:apiVersion': 'v1',
+                        'braintree:authorizationFingerprint': googlePayBraintreeDataRequestV1.paymentMethodTokenizationParameters.parameters['braintree:authorizationFingerprint'],
+                        'braintree:merchantId': googlePayBraintreeDataRequestV1.paymentMethodTokenizationParameters.parameters['braintree:merchantId'],
+                        'braintree:sdkVersion': googlePayBraintreeDataRequestV1.paymentMethodTokenizationParameters.parameters['braintree:sdkVersion'],
+                    },
+                },
+            }],
+            transactionInfo: googlePayBraintreeDataRequestV1.transactionInfo,
+            emailRequired: true,
+            shippingAddressRequired: googlePayBraintreeDataRequestV1.shippingAddressRequired,
+            shippingAddressParameters: {
+                phoneNumberRequired: googlePayBraintreeDataRequestV1.phoneNumberRequired,
+            },
+        };
     }
 }
