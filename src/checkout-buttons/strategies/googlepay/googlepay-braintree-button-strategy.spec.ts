@@ -88,6 +88,8 @@ describe('GooglePayBraintreeCheckoutButtonStrategy', () => {
 
         jest.spyOn(walletButton, 'removeEventListener');
 
+        jest.spyOn(paymentProcessor, 'deinitialize');
+
         container.appendChild(walletButton);
         document.body.appendChild(container);
     });
@@ -173,6 +175,14 @@ describe('GooglePayBraintreeCheckoutButtonStrategy', () => {
 
         beforeEach(() => {
             checkoutButtonOptions = getCheckoutButtonOptions();
+        });
+
+        it('check if googlepay payment processor deinitialize is called', async () => {
+            await strategy.initialize(checkoutButtonOptions);
+
+            strategy.deinitialize(checkoutButtonOptions);
+
+            expect(paymentProcessor.deinitialize).toBeCalled();
         });
 
         it('succesfully deinitializes the strategy', async () => {
