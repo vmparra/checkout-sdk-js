@@ -29,9 +29,9 @@ import {
 } from './';
 
 export default class GooglePayPaymentProcessor {
-    private _googlePaymentsClient!: GooglePayClient;
-    private _methodId!: string;
-    private _googlePaymentDataRequest!: GooglePayPaymentDataRequestV2;
+    private _googlePayClient?: GooglePayClient;
+    private _methodId?: string;
+    private _paymentDataRequest?: GooglePayPaymentDataRequestV2;
     private _shippingStrategyActionCreator: ShippingStrategyActionCreator;
 
     constructor(
@@ -45,40 +45,8 @@ export default class GooglePayPaymentProcessor {
         this._shippingStrategyActionCreator = new ShippingStrategyActionCreator(createShippingStrategyRegistry(this._store, this._requestSender));
     }
 
-    private get googlePaymentsClient(): GooglePayClient {
-        if (!this._googlePaymentsClient) {
-            throw new NotInitializedError(NotInitializedErrorType.PaymentNotInitialized);
-        }
-
-        return this._googlePaymentsClient;
-    }
-
-    private get methodId(): string {
-        if (!this._methodId) {
-            throw new NotInitializedError(NotInitializedErrorType.PaymentNotInitialized);
-        }
-
-        return this._methodId;
-    }
-
-    private set methodId(value: string) {
-        if (!value) {
-            throw new RemoteCheckoutSynchronizationError();
-        }
-
-        this._methodId = value;
-    }
-
-    private get googlePaymentDataRequest(): GooglePayPaymentDataRequestV2 {
-        if (!this._googlePaymentDataRequest) {
-            throw new RemoteCheckoutSynchronizationError();
-        }
-
-        return this._googlePaymentDataRequest;
-    }
-
     initialize(methodId: string): Promise<void> {
-        this.methodId = methodId;
+        this._methodId = methodId;
 
         return this._configureWallet();
     }
@@ -92,7 +60,11 @@ export default class GooglePayPaymentProcessor {
         buttonType: ButtonType = ButtonType.Short,
         buttonColor: ButtonColor = ButtonColor.Default
     ): HTMLElement {
-        return this.googlePaymentsClient.createButton({
+        if (!this._googlePayClient) {
+            throw new NotInitializedError(NotInitializedErrorType.PaymentNotInitialized);
+        }
+
+        return this._googlePayClient.createButton({
             buttonColor,
             buttonType,
             onClick,
@@ -100,21 +72,28 @@ export default class GooglePayPaymentProcessor {
     }
 
     displayWallet(): Promise<GooglePaymentData> {
-        return this.googlePaymentsClient.isReadyToPay({
+        if (!this._googlePayClient) {
+            throw new NotInitializedError(NotInitializedErrorType.PaymentNotInitialized);
+        }
+
+        const paymentDataRequest = this._getPaymentDataRequest();
+        const googlePayClient = this._googlePayClient;
+
+        return googlePayClient.isReadyToPay({
             allowedPaymentMethods: [
                 {
-                    type: this._googlePaymentDataRequest.allowedPaymentMethods[0].type,
+                    type: paymentDataRequest.allowedPaymentMethods[0].type,
                     parameters: {
-                        allowedAuthMethods: this._googlePaymentDataRequest.allowedPaymentMethods[0].parameters.allowedAuthMethods,
-                        allowedCardNetworks: this._googlePaymentDataRequest.allowedPaymentMethods[0].parameters.allowedCardNetworks,
+                        allowedAuthMethods: paymentDataRequest.allowedPaymentMethods[0].parameters.allowedAuthMethods,
+                        allowedCardNetworks: paymentDataRequest.allowedPaymentMethods[0].parameters.allowedCardNetworks,
                     },
                 },
             ],
-            apiVersion: this._googlePaymentDataRequest.apiVersion,
-            apiVersionMinor: this._googlePaymentDataRequest.apiVersionMinor,
+            apiVersion: paymentDataRequest.apiVersion,
+            apiVersionMinor: paymentDataRequest.apiVersionMinor,
         }).then(response => {
             if (response.result) {
-                return this.googlePaymentsClient.loadPaymentData(this.googlePaymentDataRequest);
+                return googlePayClient.loadPaymentData(paymentDataRequest);
             }
 
             throw new NotInitializedError(NotInitializedErrorType.PaymentNotInitialized);
@@ -134,13 +113,15 @@ export default class GooglePayPaymentProcessor {
 
         return this._store.dispatch(
             this._shippingStrategyActionCreator.updateAddress(this._mapGooglePayAddressToShippingAddress(shippingAddress),
-                { methodId: this._methodId }), { queueId: 'shippingStrategy' });
+                { methodId: this._getMethodId() }), { queueId: 'shippingStrategy' });
     }
 
     private _configureWallet(): Promise<void> {
-        return this._store.dispatch(this._paymentMethodActionCreator.loadPaymentMethod(this.methodId))
+        const methodId = this._getMethodId();
+
+        return this._store.dispatch(this._paymentMethodActionCreator.loadPaymentMethod(methodId))
             .then(state => {
-                const paymentMethod = state.paymentMethods.getPaymentMethod(this.methodId);
+                const paymentMethod = state.paymentMethods.getPaymentMethod(methodId);
                 const checkout = state.checkout.getCheckout();
                 const hasShippingAddress = !!state.shippingAddress.getShippingAddress();
 
@@ -157,9 +138,9 @@ export default class GooglePayPaymentProcessor {
                 return Promise.all([
                     this._googlePayScriptLoader.load(),
                     this._googlePayInitializer.initialize(checkout, paymentMethod, hasShippingAddress),
-                ]).then(([googlePay, googlePayPaymentDataRequest]) => {
-                        this._googlePaymentsClient = this._getGooglePaymentsClient(googlePay, testMode);
-                        this._googlePaymentDataRequest = googlePayPaymentDataRequest;
+                ]).then(([googlePay, paymentDataRequest]) => {
+                        this._googlePayClient = this._getGooglePayClient(googlePay, testMode);
+                        this._paymentDataRequest = paymentDataRequest;
                 })
                 .catch((error: Error) => {
                     throw error;
@@ -174,7 +155,15 @@ export default class GooglePayPaymentProcessor {
         };
     }
 
-    private _getGooglePaymentsClient(google: GooglePaySDK, testMode?: boolean): GooglePayClient {
+    private _getPaymentDataRequest(): GooglePayPaymentDataRequestV2 {
+        if (!this._paymentDataRequest) {
+            throw new RemoteCheckoutSynchronizationError();
+        }
+
+        return this._paymentDataRequest;
+    }
+
+    private _getGooglePayClient(google: GooglePaySDK, testMode?: boolean): GooglePayClient {
         if (testMode === undefined) {
             throw new MissingDataError(MissingDataErrorType.MissingPaymentMethod);
         }
@@ -182,6 +171,14 @@ export default class GooglePayPaymentProcessor {
         const environment: EnvironmentType = testMode ? 'TEST' : 'PRODUCTION';
 
         return new google.payments.api.PaymentsClient({ environment });
+    }
+
+    private _getMethodId(): string {
+        if (!this._methodId) {
+            throw new NotInitializedError(NotInitializedErrorType.PaymentNotInitialized);
+        }
+
+        return this._methodId;
     }
 
     private _mapGooglePayAddressToBillingAddress(paymentData: GooglePaymentData, id: string): BillingAddressUpdateRequestBody {
@@ -231,7 +228,7 @@ export default class GooglePayPaymentProcessor {
             body: toFormUrlEncoded({
                 payment_type: postPaymentData.type,
                 nonce: postPaymentData.nonce,
-                provider: this.methodId,
+                provider: this._getMethodId(),
                 action: 'set_external_checkout',
                 card_information: this._getCardInformation(cardInformation),
             }),
