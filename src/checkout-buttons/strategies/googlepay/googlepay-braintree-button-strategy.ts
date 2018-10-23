@@ -85,7 +85,7 @@ export default class GooglePayBraintreeButtonStrategy extends CheckoutButtonStra
 
     private _getMethodId(): string {
         if (!this._methodId) {
-            throw new InvalidArgumentError();
+            throw new MissingDataError(MissingDataErrorType.MissingPaymentMethod);
         }
 
         return this._methodId;
