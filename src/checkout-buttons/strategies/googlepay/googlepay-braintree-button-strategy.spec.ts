@@ -142,7 +142,7 @@ describe('GooglePayBraintreeCheckoutButtonStrategy', () => {
                 try {
                     await strategy.initialize(checkoutButtonOptions);
                 } catch (e) {
-                    expect(e).toBeInstanceOf(InvalidArgumentError);
+                    expect(e).toBeInstanceOf(MissingDataError);
                 }
             });
 
@@ -152,7 +152,7 @@ describe('GooglePayBraintreeCheckoutButtonStrategy', () => {
                 try {
                     await strategy.initialize(checkoutButtonOptions);
                 } catch (e) {
-                    expect(e).toBeInstanceOf(InvalidArgumentError);
+                    expect(e).toBeInstanceOf(MissingDataError);
                 }
             });
 
