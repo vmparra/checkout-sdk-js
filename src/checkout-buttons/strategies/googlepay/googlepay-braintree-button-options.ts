@@ -4,16 +4,6 @@ import { ButtonColor, ButtonType, EnvironmentType } from '../../../payment/strat
 
 export interface GooglePayBraintreeButtonInitializeOptions {
     /**
-     * The ID of a container which the checkout button should be inserted.
-     */
-    container: string;
-
-    /**
-     * This one is used to set the environment of Braintree. Default is 'PRODUCTION'
-     */
-    environment?: EnvironmentType;
-
-    /**
      * The color of the GooglePay button that will be inserted.
      *  black (default): a black button suitable for use on white or light backgrounds.
      *  white: a white button suitable for use on colorful backgrounds.

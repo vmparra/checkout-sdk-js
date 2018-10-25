@@ -1,6 +1,7 @@
 import { createRequestSender } from '@bigcommerce/request-sender/lib';
 import { getScriptLoader } from '@bigcommerce/script-loader/lib/';
 
+import { CheckoutButtonMethodType } from '../';
 import { BillingAddressActionCreator, BillingAddressRequestSender } from '../../../billing';
 import { CheckoutStore } from '../../../checkout';
 import { PaymentMethod, PaymentMethodActionCreator, PaymentMethodRequestSender } from '../../../payment';
@@ -8,6 +9,7 @@ import { getGooglePay } from '../../../payment/payment-methods.mock';
 import { BraintreeScriptLoader, BraintreeSDKCreator } from '../../../payment/strategies/braintree';
 import { GooglePayBraintreeInitializer, GooglePayPaymentProcessor, GooglePayScriptLoader } from '../../../payment/strategies/googlepay';
 import { CheckoutButtonInitializeOptions } from '../../checkout-button-options';
+
 
 const requestSender = createRequestSender();
 const scriptLoader = getScriptLoader();
@@ -44,30 +46,33 @@ export enum Mode {
 }
 
 export function getCheckoutButtonOptions(mode: Mode = Mode.Full): CheckoutButtonInitializeOptions {
-    const methodId = { methodId: 'googlepay' };
+    const methodId = { methodId: CheckoutButtonMethodType.GOOGLEPAY_BRAINTREE };
     const undefinedMethodId = { methodId: '' };
+    const containerId = 'googlePayCheckoutButton';
+    const undefinedContainerId = { containerId : '' };
     const container = { container: 'googlePayCheckoutButton' };
-    const undefinedContainer = { container: '' };
+    const undefinedContainer = { containerId: '' };
+    const invalidContainerId = { containerId: 'invalid_container' };
     const invalidContainer = { container: 'invalid_container' };
-    const googlepay = { googlepaybraintree: { ...container } };
+    const googlepay = { googlepaybraintree: { } };
     const googlepayWithUndefinedContainer = { googlepaybraintree: { ...undefinedContainer } };
     const googlepayWithInvalidContainer = { googlepaybraintree: { ...invalidContainer } };
 
     switch (mode) {
         case Mode.Incomplete: {
-            return { ...methodId };
+            return { ...methodId, containerId };
         }
         case Mode.UndefinedMethodId: {
-            return { ...undefinedMethodId };
+            return { ...undefinedMethodId, containerId };
         }
         case Mode.UndefinedContainer: {
-            return { ...methodId, ...googlepayWithUndefinedContainer };
+            return { ...methodId, ...undefinedContainerId };
         }
         case Mode.InvalidContainer: {
-            return { ...methodId, ...googlepayWithInvalidContainer };
+            return { ...methodId, ...invalidContainerId };
         }
         default: {
-            return { ...methodId, ...googlepay };
+            return { ...methodId, containerId, ...googlepay };
         }
     }
 }
