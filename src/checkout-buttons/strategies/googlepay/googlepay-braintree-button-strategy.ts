@@ -24,17 +24,17 @@ export default class GooglePayBraintreeButtonStrategy extends CheckoutButtonStra
     }
 
     initialize(options: CheckoutButtonInitializeOptions): Promise<void> {
-        if (this._isInitialized) {
+        const { containerId, methodId } = options;
+
+        if (!containerId || !methodId) {
+            throw new InvalidArgumentError('Unable to proceed because "containerId" argument is not provided.');
+        }
+
+        if (this._isInitialized[containerId]) {
             return super.initialize(options);
         }
 
-        const { containerId, googlepaybraintree, methodId } = options;
-
         this._methodId = methodId;
-
-        if (!googlepaybraintree && !containerId) {
-            throw new MissingDataError(MissingDataErrorType.MissingPaymentMethod);
-        }
 
         return this._store.dispatch(this._checkoutActionCreator.loadDefaultCheckout())
             .then(stateCheckout => {

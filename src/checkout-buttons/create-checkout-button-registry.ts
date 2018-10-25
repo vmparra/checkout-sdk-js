@@ -68,7 +68,7 @@ export default function createCheckoutButtonRegistry(
             formPoster,
             checkoutActionCreator,
             paymentMethodActionCreator,
-            createGooglePayPaymentProcessor(store, scriptLoader)
+            createGooglePayPaymentProcessor(store)
         )
     );
 
