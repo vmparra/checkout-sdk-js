@@ -30,7 +30,7 @@ export interface CheckoutButtonInitializeOptions extends CheckoutButtonOptions {
      */
     containerId: string;
 
-    /*
+    /**
      * The options that are required to facilitate Braintree GooglePay. They can be
      * omitted unles you need to support Braintree GooglePay.
      */
