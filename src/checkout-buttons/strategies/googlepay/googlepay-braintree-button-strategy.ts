@@ -5,7 +5,7 @@ import { InvalidArgumentError, MissingDataError, MissingDataErrorType } from '..
 import { bindDecorator as bind } from '../../../common/utility';
 import { PaymentMethodActionCreator } from '../../../payment';
 import { GooglePayAddress, GooglePayPaymentProcessor } from '../../../payment/strategies/googlepay';
-import { CheckoutButtonInitializeOptions, CheckoutButtonOptions } from '../../checkout-button-options';
+import { CheckoutButtonInitializeOptions } from '../../checkout-button-options';
 import CheckoutButtonStrategy from '../checkout-button-strategy';
 
 export default class GooglePayBraintreeButtonStrategy extends CheckoutButtonStrategy {
@@ -28,11 +28,11 @@ export default class GooglePayBraintreeButtonStrategy extends CheckoutButtonStra
             return super.initialize(options);
         }
 
-        const { googlepaybraintree, methodId } = options;
+        const { containerId, googlepaybraintree, methodId } = options;
 
-        this.methodId = methodId;
+        this._methodId = methodId;
 
-        if (!googlepaybraintree) {
+        if (!googlepaybraintree && !containerId) {
             throw new MissingDataError(MissingDataErrorType.MissingPaymentMethod);
         }
 
@@ -43,9 +43,9 @@ export default class GooglePayBraintreeButtonStrategy extends CheckoutButtonStra
                     throw new MissingDataError(MissingDataErrorType.MissingCart);
                 }
 
-                return this._googlePayPaymentProcessor.initialize(this.methodId)
+                return this._googlePayPaymentProcessor.initialize(this._getMethodId())
                     .then(() => {
-                        this._walletButton = this._createSignInButton(googlepaybraintree.container);
+                        this._walletButton = this._createSignInButton(containerId);
 
                         if (this._walletButton) {
                             this._walletButton.addEventListener('click', this._handleWalletButtonClick);
@@ -54,9 +54,9 @@ export default class GooglePayBraintreeButtonStrategy extends CheckoutButtonStra
             }).then(() => super.initialize(options));
     }
 
-    deinitialize(options: CheckoutButtonOptions): Promise<void> {
+    deinitialize(): Promise<void> {
         if (!this._isInitialized) {
-            return super.deinitialize(options);
+            return super.deinitialize();
         }
 
         if (this._walletButton && this._walletButton.parentNode) {
@@ -66,23 +66,7 @@ export default class GooglePayBraintreeButtonStrategy extends CheckoutButtonStra
         }
 
         return this._googlePayPaymentProcessor.deinitialize()
-            .then(() => super.deinitialize(options));
-    }
-
-    private get methodId(): string {
-        if (!this._methodId) {
-            throw new MissingDataError(MissingDataErrorType.MissingPaymentMethod);
-        }
-
-        return this._methodId;
-    }
-
-    private set methodId(value: string) {
-        if (!value) {
-            throw new InvalidArgumentError();
-        }
-
-        this._methodId = value;
+            .then(() => super.deinitialize());
     }
 
     private _createSignInButton(containerId: string): HTMLElement {
@@ -97,6 +81,14 @@ export default class GooglePayBraintreeButtonStrategy extends CheckoutButtonStra
         container.appendChild(googlePayButton);
 
         return googlePayButton;
+    }
+
+    private _getMethodId(): string {
+        if (!this._methodId) {
+            throw new MissingDataError(MissingDataErrorType.MissingPaymentMethod);
+        }
+
+        return this._methodId;
     }
 
     @bind
@@ -133,7 +125,7 @@ export default class GooglePayBraintreeButtonStrategy extends CheckoutButtonStra
         return Promise.all([
             this._googlePayPaymentProcessor.updateShippingAddress(shippingAddress),
             this._store.dispatch(this._checkoutActionCreator.loadCurrentCheckout()),
-            this._store.dispatch(this._paymentMethodActionCreator.loadPaymentMethod(this.methodId)),
+            this._store.dispatch(this._paymentMethodActionCreator.loadPaymentMethod(this._getMethodId())),
         ]).then(() => this._onPaymentSelectComplete());
     }
 
