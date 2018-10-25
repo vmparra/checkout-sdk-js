@@ -2,7 +2,6 @@ import { createRequestSender, RequestSender } from '@bigcommerce/request-sender'
 
 import { CustomerInitializeOptions } from '../';
 import { createFormPoster, FormPoster } from '../../../node_modules/@bigcommerce/form-poster';
-import { createScriptLoader } from '../../../node_modules/@bigcommerce/script-loader';
 import { getCartState } from '../../cart/carts.mock';
 import { createCheckoutStore, CheckoutStore } from '../../checkout';
 import { getCheckoutState } from '../../checkout/checkouts.mock';
@@ -11,7 +10,7 @@ import { getConfigState } from '../../config/configs.mock';
 import { PaymentMethod } from '../../payment';
 import { getPaymentMethodsState } from '../../payment/payment-methods.mock';
 import { createGooglePayPaymentProcessor, GooglePayPaymentProcessor } from '../../payment/strategies/googlepay';
-import {getGooglePaymentDataMock} from '../../payment/strategies/googlepay/googlepay.mock';
+import { getGooglePaymentDataMock } from '../../payment/strategies/googlepay/googlepay.mock';
 import { RemoteCheckoutActionCreator, RemoteCheckoutRequestSender } from '../../remote-checkout';
 import { getCustomerState } from '../customers.mock';
 
@@ -47,7 +46,7 @@ describe('GooglePayBraintreeCustomerStrategy', () => {
             new RemoteCheckoutRequestSender(requestSender)
         );
 
-        paymentProcessor = createGooglePayPaymentProcessor(store, createScriptLoader());
+        paymentProcessor = createGooglePayPaymentProcessor(store);
 
         formPoster = createFormPoster();
 

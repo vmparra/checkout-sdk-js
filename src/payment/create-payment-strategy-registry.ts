@@ -8,15 +8,12 @@ import { ConfigActionCreator, ConfigRequestSender } from '../config';
 import { OrderActionCreator, OrderRequestSender } from '../order';
 import { RemoteCheckoutActionCreator, RemoteCheckoutRequestSender } from '../remote-checkout';
 
-import {
-    PaymentActionCreator,
-    PaymentMethodActionCreator,
-    PaymentMethodRequestSender,
-    PaymentRequestSender,
-    PaymentStrategyActionCreator,
-    PaymentStrategyRegistry
-
- } from './';
+import PaymentActionCreator from './payment-action-creator';
+import PaymentMethodActionCreator from './payment-method-action-creator';
+import PaymentMethodRequestSender from './payment-method-request-sender';
+import PaymentRequestSender from './payment-request-sender';
+import PaymentStrategyActionCreator from './payment-strategy-action-creator';
+import PaymentStrategyRegistry from './payment-strategy-registry';
 import {
     AfterpayPaymentStrategy,
     AmazonPayPaymentStrategy,
@@ -40,7 +37,7 @@ import { AfterpayScriptLoader } from './strategies/afterpay';
 import { AmazonPayScriptLoader } from './strategies/amazon-pay';
 import { createBraintreePaymentProcessor, createBraintreeVisaCheckoutPaymentProcessor, VisaCheckoutScriptLoader } from './strategies/braintree';
 import { ChasePayPaymentStrategy, ChasePayScriptLoader } from './strategies/chasepay';
-import createGooglePayPaymentProcessor from './strategies/googlepay/create-googlepay-payment-processor';
+import { createGooglePayPaymentProcessor } from './strategies/googlepay/';
 import { KlarnaScriptLoader } from './strategies/klarna';
 import { MasterpassPaymentStrategy, MasterpassScriptLoader } from './strategies/masterpass';
 import { PaypalScriptLoader } from './strategies/paypal';
@@ -257,7 +254,7 @@ export default function createPaymentStrategyRegistry(
             paymentStrategyActionCreator,
             paymentActionCreator,
             orderActionCreator,
-            createGooglePayPaymentProcessor(store, scriptLoader)
+            createGooglePayPaymentProcessor(store)
         )
     );
 

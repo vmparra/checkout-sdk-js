@@ -1,12 +1,12 @@
-import { CustomerCredentials, CustomerInitializeOptions, CustomerRequestOptions } from '../';
+import { CustomerCredentials, CustomerInitializeOptions, CustomerRequestOptions } from '..';
 import { FormPoster } from '../../../node_modules/@bigcommerce/form-poster/lib';
 import { CheckoutStore, InternalCheckoutSelectors } from '../../checkout';
 import { InvalidArgumentError, MissingDataError, MissingDataErrorType, NotImplementedError } from '../../common/error/errors';
 import { bindDecorator as bind } from '../../common/utility';
-import { GooglePayAddress, GooglePayPaymentProcessor } from '../../payment/strategies/googlepay';
+import { GooglePayPaymentProcessor } from '../../payment/strategies/googlepay';
 import { RemoteCheckoutActionCreator } from '../../remote-checkout';
 
-import { CustomerStrategy } from './';
+import CustomerStrategy from './customer-strategy';
 
 export default class GooglePayBraintreeCustomerStrategy extends CustomerStrategy {
     private _walletButton?: HTMLElement;
@@ -102,7 +102,7 @@ export default class GooglePayBraintreeCustomerStrategy extends CustomerStrategy
 
     private _onError(error?: Error): void {
         if (error && error.message !== 'CANCELED') {
-            throw new Error(error.message);
+            throw error;
         }
     }
 
@@ -110,16 +110,11 @@ export default class GooglePayBraintreeCustomerStrategy extends CustomerStrategy
     private _handleWalletButtonClick(event: Event): Promise<void> {
         event.preventDefault();
 
-        let shippingAddress: GooglePayAddress;
-
         return this._googlePayPaymentProcessor.displayWallet()
-            .then(paymentData => {
-                shippingAddress = paymentData.shippingAddress;
-                this._googlePayPaymentProcessor.handleSuccess(paymentData);
-            })
-            .then(() =>  this._googlePayPaymentProcessor.updateShippingAddress(shippingAddress)
+            .then(paymentData =>
+                this._googlePayPaymentProcessor.handleSuccess(paymentData)
+                    .then(() => this._googlePayPaymentProcessor.updateShippingAddress(paymentData.shippingAddress)))
             .then(() => this._onPaymentSelectComplete())
-            .catch(error => this._onError(error))
-        );
+            .catch(error => this._onError(error));
     }
 }

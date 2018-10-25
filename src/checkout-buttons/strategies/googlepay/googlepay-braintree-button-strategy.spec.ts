@@ -52,7 +52,7 @@ describe('GooglePayBraintreeCheckoutButtonStrategy', () => {
             new ConfigActionCreator(new ConfigRequestSender(requestSender))
         );
 
-        paymentProcessor = createGooglePayPaymentProcessor(store, createScriptLoader());
+        paymentProcessor = createGooglePayPaymentProcessor(store);
 
         formPoster = createFormPoster();
 
