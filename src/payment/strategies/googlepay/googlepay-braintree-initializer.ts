@@ -1,10 +1,7 @@
+import { PaymentMethod } from '../..';
 import { Checkout } from '../../../checkout';
-import {
-    MissingDataError,
-    MissingDataErrorType
-} from '../../../common/error/errors';
+import { MissingDataError, MissingDataErrorType } from '../../../common/error/errors';
 import StandardError from '../../../common/error/errors/standard-error';
-import PaymentMethod from '../../payment-method';
 import { BraintreeSDKCreator, GooglePayBraintreeSDK } from '../braintree';
 
 import {
@@ -51,24 +48,20 @@ export default class GooglePayBraintreeInitializer implements GooglePayInitializ
         return this._braintreeSDKCreator.teardown();
     }
 
-    parseResponse(paymentData: GooglePaymentData): Promise<TokenizePayload> {
-        try {
-            const payload = JSON.parse(paymentData.paymentMethodData.tokenizationData.token).androidPayCards[0];
+    parseResponse(paymentData: GooglePaymentData): TokenizePayload {
+        const payload = JSON.parse(paymentData.paymentMethodData.tokenizationData.token).androidPayCards[0];
 
-            return Promise.resolve({
-                nonce: payload.nonce,
-                type: payload.type,
-                description: payload.description,
-                details: {
-                    cardType: payload.details.cardType,
-                    lastFour: payload.details.lastFour,
-                    lastTwo: payload.details.lastTwo,
-                },
-                binData: payload.binData,
-            });
-        } catch (err) {
-            return Promise.reject(err);
-        }
+        return {
+            nonce: payload.nonce,
+            type: payload.type,
+            description: payload.description,
+            details: {
+                cardType: payload.details.cardType,
+                lastFour: payload.details.lastFour,
+                lastTwo: payload.details.lastTwo,
+            },
+            binData: payload.binData,
+        };
     }
 
     private _createGooglePayPayload(
