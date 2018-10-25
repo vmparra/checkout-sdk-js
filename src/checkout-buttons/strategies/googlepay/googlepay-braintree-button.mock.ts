@@ -3,13 +3,13 @@ import { getScriptLoader } from '@bigcommerce/script-loader/lib/';
 
 import { CheckoutButtonMethodType } from '../';
 import { BillingAddressActionCreator, BillingAddressRequestSender } from '../../../billing';
-import { CheckoutStore } from '../../../checkout';
+import { CheckoutRequestSender, CheckoutStore } from '../../../checkout';
 import { PaymentMethod, PaymentMethodActionCreator, PaymentMethodRequestSender } from '../../../payment';
 import { getGooglePay } from '../../../payment/payment-methods.mock';
 import { BraintreeScriptLoader, BraintreeSDKCreator } from '../../../payment/strategies/braintree';
 import { GooglePayBraintreeInitializer, GooglePayPaymentProcessor, GooglePayScriptLoader } from '../../../payment/strategies/googlepay';
+import { ConsignmentActionCreator, ConsignmentRequestSender } from '../../../shipping';
 import { CheckoutButtonInitializeOptions } from '../../checkout-button-options';
-
 
 const requestSender = createRequestSender();
 const scriptLoader = getScriptLoader();
@@ -23,6 +23,9 @@ export function getGooglePayPaymentProcessor(store: CheckoutStore): GooglePayPay
         new GooglePayScriptLoader(scriptLoader),
         new GooglePayBraintreeInitializer(braintreeSdkCreator),
         new BillingAddressActionCreator(new BillingAddressRequestSender(requestSender)),
+        new ConsignmentActionCreator(
+                new ConsignmentRequestSender(requestSender),
+                new CheckoutRequestSender(requestSender)),
         requestSender
     );
 }
@@ -50,17 +53,12 @@ export function getCheckoutButtonOptions(mode: Mode = Mode.Full): CheckoutButton
     const undefinedMethodId = { methodId: '' };
     const containerId = 'googlePayCheckoutButton';
     const undefinedContainerId = { containerId : '' };
-    const container = { container: 'googlePayCheckoutButton' };
-    const undefinedContainer = { containerId: '' };
     const invalidContainerId = { containerId: 'invalid_container' };
-    const invalidContainer = { container: 'invalid_container' };
     const googlepay = { googlepaybraintree: { } };
-    const googlepayWithUndefinedContainer = { googlepaybraintree: { ...undefinedContainer } };
-    const googlepayWithInvalidContainer = { googlepaybraintree: { ...invalidContainer } };
 
     switch (mode) {
         case Mode.Incomplete: {
-            return { ...methodId, containerId };
+            return { ...methodId };
         }
         case Mode.UndefinedMethodId: {
             return { ...undefinedMethodId, containerId };
