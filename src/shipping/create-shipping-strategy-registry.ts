@@ -9,7 +9,7 @@ import { RemoteCheckoutActionCreator, RemoteCheckoutRequestSender } from '../rem
 
 import ConsignmentActionCreator from './consignment-action-creator';
 import ConsignmentRequestSender from './consignment-request-sender';
-import { AmazonPayShippingStrategy, DefaultShippingStrategy, GooglePayBraintreeShippingStrategy, ShippingStrategy } from './strategies';
+import { AmazonPayShippingStrategy, DefaultShippingStrategy, ShippingStrategy } from './strategies';
 
 export default function createShippingStrategyRegistry(
     store: CheckoutStore,
@@ -27,13 +27,6 @@ export default function createShippingStrategyRegistry(
             new PaymentMethodActionCreator(new PaymentMethodRequestSender(requestSender)),
             new RemoteCheckoutActionCreator(new RemoteCheckoutRequestSender(requestSender)),
             new AmazonPayScriptLoader(getScriptLoader())
-        )
-    );
-
-    registry.register('googlepaybraintree', () =>
-        new GooglePayBraintreeShippingStrategy(
-            store,
-            consignmentActionCreator
         )
     );
 

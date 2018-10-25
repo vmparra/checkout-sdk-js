@@ -30,13 +30,12 @@ import {
 import { getGooglePay, getPaymentMethodsState } from '../../payment-methods.mock';
 import { BraintreeScriptLoader, BraintreeSDKCreator } from '../braintree';
 
-import {
-    GooglePayBraintreeInitializer,
-    GooglePayPaymentProcessor,
-    GooglePayPaymentStrategy,
-    GooglePayScriptLoader
-} from './';
+import createGooglePayPaymentProcessor from './create-googlepay-payment-processor';
 import { GooglePayInitializer} from './googlepay';
+import GooglePayBraintreeInitializer from './googlepay-braintree-initializer';
+import GooglePayPaymentProcessor from './googlepay-payment-processor';
+import GooglePayPaymentStrategy from './googlepay-payment-strategy';
+import GooglePayScriptLoader from './googlepay-script-loader';
 import { getGoogleOrderRequestBody, getGooglePaymentDataMock, getGooglePaymentDataPayload } from './googlepay.mock';
 
 describe('GooglePayPaymentStrategy', () => {
@@ -87,14 +86,7 @@ describe('GooglePayPaymentStrategy', () => {
             )
         );
         googlePayInitializer = new GooglePayBraintreeInitializer(braintreeSdkCreator);
-        googlePayPaymentProcessor = new GooglePayPaymentProcessor(
-            store,
-            paymentMethodActionCreator,
-            googlePayScriptLoader,
-            googlePayInitializer,
-            billingAddressActionCreator,
-            requestSender
-        );
+        googlePayPaymentProcessor = createGooglePayPaymentProcessor(store);
 
         strategy = new GooglePayPaymentStrategy(
             store,

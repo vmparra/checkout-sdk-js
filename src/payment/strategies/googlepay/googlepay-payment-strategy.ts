@@ -1,4 +1,3 @@
-import { PaymentStrategy } from '../';
 import {
     PaymentActionCreator,
     PaymentInitializeOptions,
@@ -16,12 +15,11 @@ import {
 } from '../../../common/error/errors';
 import { bindDecorator as bind } from '../../../common/utility';
 import { OrderActionCreator, OrderRequestBody } from '../../../order';
+import PaymentStrategy from '../payment-strategy';
 
-import { GooglePayPaymentInitializeOptions, GooglePayPaymentProcessor } from './';
-import {
-    GooglePaymentData,
-    PaymentMethodData,
-} from './googlepay';
+import { GooglePaymentData, PaymentMethodData } from './googlepay';
+import GooglePayPaymentInitializeOptions from './googlepay-initialize-options';
+import GooglePayPaymentProcessor from './googlepay-payment-processor';
 
 export default class GooglePayPaymentStrategy extends PaymentStrategy {
     private _googlePayOptions?: GooglePayPaymentInitializeOptions;
@@ -69,9 +67,8 @@ export default class GooglePayPaymentStrategy extends PaymentStrategy {
 
         this._walletButton = undefined;
 
-        return Promise.all([
-            this._googlePayPaymentProcessor.deinitialize(),
-        ]).then(() => super.deinitialize(options));
+        return this._googlePayPaymentProcessor.deinitialize()
+            .then(() => super.deinitialize(options));
     }
 
     execute(payload: OrderRequestBody, options?: PaymentRequestOptions): Promise<InternalCheckoutSelectors> {

@@ -1,29 +1,29 @@
+import { createRequestSender } from '@bigcommerce/request-sender';
+import { getScriptLoader } from '@bigcommerce/script-loader';
+
 import { PaymentMethodActionCreator, PaymentMethodRequestSender } from '../..';
-import { createRequestSender } from '../../../../node_modules/@bigcommerce/request-sender';
-import { ScriptLoader } from '../../../../node_modules/@bigcommerce/script-loader/lib';
 import { BillingAddressActionCreator, BillingAddressRequestSender } from '../../../billing';
-import { CheckoutStore } from '../../../checkout';
+import { CheckoutRequestSender, CheckoutStore } from '../../../checkout';
+import { ConsignmentActionCreator, ConsignmentRequestSender } from '../../../shipping';
 import { BraintreeScriptLoader, BraintreeSDKCreator } from '../braintree';
 
 import { GooglePayBraintreeInitializer,  GooglePayPaymentProcessor, GooglePayScriptLoader } from '.';
 
-export default function createGooglePayPaymentProcessor(
-    store: CheckoutStore,
-    scriptLoader: ScriptLoader): GooglePayPaymentProcessor {
+export default function createGooglePayPaymentProcessor(store: CheckoutStore): GooglePayPaymentProcessor {
 
     const requestSender = createRequestSender();
-    const paymentMethodActionCreator = new PaymentMethodActionCreator(new PaymentMethodRequestSender(requestSender));
-    const billingAddressActionCreator = new BillingAddressActionCreator(new BillingAddressRequestSender(requestSender));
-    const braintreeScitpLoader = new BraintreeScriptLoader(scriptLoader);
-    const braintreeSDKCreator = new BraintreeSDKCreator(braintreeScitpLoader);
-    const googlePayBraintreeInitializer = new GooglePayBraintreeInitializer(braintreeSDKCreator);
+    const scriptLoader = getScriptLoader();
 
     return new GooglePayPaymentProcessor(
         store,
-        paymentMethodActionCreator,
+        new PaymentMethodActionCreator(new PaymentMethodRequestSender(requestSender)),
         new GooglePayScriptLoader(scriptLoader),
-        googlePayBraintreeInitializer,
-        billingAddressActionCreator,
+        new GooglePayBraintreeInitializer(
+            new BraintreeSDKCreator(new BraintreeScriptLoader(scriptLoader))),
+        new BillingAddressActionCreator(new BillingAddressRequestSender(requestSender)),
+        new ConsignmentActionCreator(
+            new ConsignmentRequestSender(requestSender),
+            new CheckoutRequestSender(requestSender)),
         requestSender
     );
 }

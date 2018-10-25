@@ -1,7 +1,7 @@
-import {createRequestSender, RequestSender} from '@bigcommerce/request-sender';
+import { createRequestSender, RequestSender } from '@bigcommerce/request-sender';
 import { createScriptLoader } from '@bigcommerce/script-loader';
 
-import { PaymentMethodActionCreator } from '../..';
+import { PaymentMethod, PaymentMethodActionCreator, PaymentMethodRequestSender } from '../..';
 import { BillingAddressActionCreator, BillingAddressRequestSender } from '../../../billing';
 import { getCartState } from '../../../cart/carts.mock';
 import { createCheckoutStore, CheckoutStore } from '../../../checkout';
@@ -15,11 +15,10 @@ import {
 } from '../../../common/error/errors';
 import { getConfigState } from '../../../config/configs.mock';
 import { getCustomerState } from '../../../customer/customers.mock';
-import PaymentMethod from '../../payment-method';
-import PaymentMethodRequestSender from '../../payment-method-request-sender';
 import { getGooglePay, getPaymentMethodsState } from '../../payment-methods.mock';
 import { BraintreeScriptLoader, BraintreeSDKCreator } from '../braintree';
 
+import createGooglePayPaymentProcessor from './create-googlepay-payment-processor';
 import {
     GooglePaymentsError,
     GooglePayClient,
@@ -66,14 +65,7 @@ describe('GooglePayPaymentProcessor', () => {
         googlePayInitializer = new GooglePayBraintreeInitializer(braintreeSdkCreator);
         requestSender = createRequestSender();
 
-        processor = new GooglePayPaymentProcessor(
-            store,
-            paymentMethodActionCreator,
-            googlePayScriptLoader,
-            googlePayInitializer,
-            billingAddressActionCreator,
-            requestSender
-        );
+        processor = createGooglePayPaymentProcessor(store);
     });
 
     it('creates an instance of GooglePayPaymentProcessor', () => {

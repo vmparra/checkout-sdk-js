@@ -94,7 +94,7 @@ export default function createCustomerStrategyRegistry(
         new GooglePayBraintreeCustomerStrategy(
             store,
             remoteCheckoutActionCreator,
-            createGooglePayPaymentProcessor(store, scriptLoader),
+            createGooglePayPaymentProcessor(store),
             formPoster
         )
     );
