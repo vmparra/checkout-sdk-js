@@ -4,7 +4,6 @@ import Registry from '../common/registry/registry';
 
 import createShippingStrategyRegistry from './create-shipping-strategy-registry';
 import AmazonPayShippingStrategy from './strategies/amazon-pay-shipping-strategy';
-import GooglePayBraintreeShippingStrategy from './strategies/googlepay-braintree-shipping-strategy';
 import ShippingStrategy from './strategies/shipping-strategy';
 
 describe('CreateShippingStrategyRegistry', () => {
@@ -19,10 +18,5 @@ describe('CreateShippingStrategyRegistry', () => {
     it('can instantiate amazon', () => {
         const shippingStrategy = registry.get('amazon');
         expect(shippingStrategy).toBeInstanceOf(AmazonPayShippingStrategy);
-    });
-
-    it('can instantiate googlepaybraintree', () => {
-        const shippingStrategy = registry.get('googlepaybraintree');
-        expect(shippingStrategy).toBeInstanceOf(GooglePayBraintreeShippingStrategy);
     });
 });
