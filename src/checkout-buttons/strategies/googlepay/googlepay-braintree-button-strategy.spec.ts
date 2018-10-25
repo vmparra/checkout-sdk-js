@@ -2,7 +2,7 @@ import { createFormPoster, FormPoster } from '@bigcommerce/form-poster';
 import { createRequestSender, RequestSender } from '@bigcommerce/request-sender';
 import { createScriptLoader } from '@bigcommerce/script-loader';
 
-import { GooglePayBraintreeButtonStrategy } from '../';
+import { CheckoutButtonMethodType, GooglePayBraintreeButtonStrategy } from '../';
 import { getCartState } from '../../../cart/carts.mock';
 import { createCheckoutStore, CheckoutActionCreator, CheckoutRequestSender, CheckoutStore } from '../../../checkout';
 import { getCheckoutState } from '../../../checkout/checkouts.mock';
@@ -12,7 +12,7 @@ import { getConfigState } from '../../../config/configs.mock';
 import { getCustomerState } from '../../../customer/customers.mock';
 import { PaymentMethod, PaymentMethodActionCreator, PaymentMethodRequestSender } from '../../../payment';
 import { getPaymentMethodsState } from '../../../payment/payment-methods.mock';
-import { createGooglePayPaymentProcessor, GooglePaymentData, GooglePayPaymentProcessor } from '../../../payment/strategies/googlepay';
+import { createGooglePayPaymentProcessor, GooglePaymentData, GooglePayPaymentProcessor, ButtonType } from '../../../payment/strategies/googlepay';
 import { getGooglePaymentDataMock } from '../../../payment/strategies/googlepay/googlepay.mock';
 import { CheckoutButtonInitializeOptions } from '../../checkout-button-options';
 
@@ -180,7 +180,7 @@ describe('GooglePayBraintreeCheckoutButtonStrategy', () => {
         it('check if googlepay payment processor deinitialize is called', async () => {
             await strategy.initialize(checkoutButtonOptions);
 
-            strategy.deinitialize(checkoutButtonOptions);
+            strategy.deinitialize();
 
             expect(paymentProcessor.deinitialize).toBeCalled();
         });
@@ -188,7 +188,7 @@ describe('GooglePayBraintreeCheckoutButtonStrategy', () => {
         it('succesfully deinitializes the strategy', async () => {
             await strategy.initialize(checkoutButtonOptions);
 
-            strategy.deinitialize(checkoutButtonOptions);
+            strategy.deinitialize();
 
             if (checkoutButtonOptions.googlepaybraintree) {
                 const button = document.getElementById(checkoutButtonOptions.googlepaybraintree.container);
@@ -203,7 +203,7 @@ describe('GooglePayBraintreeCheckoutButtonStrategy', () => {
         });
 
         it('Validates if strategy is loaded before call deinitialize', async () => {
-            await strategy.deinitialize(checkoutButtonOptions);
+            await strategy.deinitialize();
 
             if (checkoutButtonOptions.googlepaybraintree) {
                 const button = document.getElementById(checkoutButtonOptions.googlepaybraintree.container);
@@ -224,9 +224,10 @@ describe('GooglePayBraintreeCheckoutButtonStrategy', () => {
 
         beforeEach(() => {
             googlePayOptions = {
-                methodId: 'googlepay',
+                methodId: CheckoutButtonMethodType.GOOGLEPAY_BRAINTREE,
+                containerId: 'googlePayCheckoutButton',
                 googlepaybraintree: {
-                    container: 'googlePayCheckoutButton',
+                    buttonType: ButtonType.Short,
                 },
             };
 

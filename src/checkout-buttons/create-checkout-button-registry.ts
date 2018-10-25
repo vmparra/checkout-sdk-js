@@ -2,13 +2,13 @@ import { createFormPoster } from '@bigcommerce/form-poster';
 import { RequestSender } from '@bigcommerce/request-sender';
 import { getScriptLoader } from '@bigcommerce/script-loader';
 
-import { BillingAddressActionCreator, BillingAddressRequestSender } from '../billing';
 import { CheckoutActionCreator, CheckoutRequestSender, CheckoutStore } from '../checkout';
 import { Registry } from '../common/registry';
 import { ConfigActionCreator, ConfigRequestSender } from '../config';
 import { PaymentMethodActionCreator, PaymentMethodRequestSender } from '../payment';
 import { BraintreeScriptLoader, BraintreeSDKCreator } from '../payment/strategies/braintree';
 
+import { createGooglePayPaymentProcessor } from '../payment/strategies/googlepay';
 import {
     GooglePayBraintreeInitializer,
     GooglePayPaymentProcessor,
@@ -62,20 +62,13 @@ export default function createCheckoutButtonRegistry(
             new MasterpassScriptLoader(scriptLoader)
         ));
 
-    registry.register('googlepaybraintree', () =>
+    registry.register(CheckoutButtonMethodType.GOOGLEPAY_BRAINTREE, () =>
         new GooglePayBraintreeButtonStrategy(
             store,
             formPoster,
             checkoutActionCreator,
             paymentMethodActionCreator,
-            new GooglePayPaymentProcessor(
-                store,
-                paymentMethodActionCreator,
-                new GooglePayScriptLoader(scriptLoader),
-                new GooglePayBraintreeInitializer(braintreeSDKCreator),
-                new BillingAddressActionCreator(new BillingAddressRequestSender(requestSender)),
-                requestSender
-            )
+            createGooglePayPaymentProcessor(store, scriptLoader)
         )
     );
 
