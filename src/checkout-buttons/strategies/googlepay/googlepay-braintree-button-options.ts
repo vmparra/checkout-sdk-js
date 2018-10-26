@@ -1,6 +1,6 @@
 import { StandardError } from '../../../common/error/errors';
 import { BraintreeError } from '../../../payment/strategies/braintree';
-import { ButtonColor, ButtonType, EnvironmentType } from '../../../payment/strategies/googlepay/googlepay';
+import { ButtonColor, ButtonType } from '../../../payment/strategies/googlepay/googlepay';
 
 export interface GooglePayBraintreeButtonInitializeOptions {
     /**
