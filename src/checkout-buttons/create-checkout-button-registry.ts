@@ -5,7 +5,6 @@ import { getScriptLoader } from '@bigcommerce/script-loader';
 import { CheckoutActionCreator, CheckoutRequestSender, CheckoutStore } from '../checkout';
 import { Registry } from '../common/registry';
 import { ConfigActionCreator, ConfigRequestSender } from '../config';
-import { PaymentMethodActionCreator, PaymentMethodRequestSender } from '../payment';
 import { BraintreeScriptLoader, BraintreeSDKCreator } from '../payment/strategies/braintree';
 
 import { createGooglePayPaymentProcessor } from '../payment/strategies/googlepay';
@@ -30,7 +29,6 @@ export default function createCheckoutButtonRegistry(
         new CheckoutRequestSender(requestSender),
         new ConfigActionCreator(new ConfigRequestSender(requestSender))
     );
-    const paymentMethodActionCreator = new PaymentMethodActionCreator(new PaymentMethodRequestSender(requestSender));
     const formPoster = createFormPoster();
 
     registry.register(CheckoutButtonMethodType.BRAINTREE_PAYPAL, () =>
@@ -66,7 +64,6 @@ export default function createCheckoutButtonRegistry(
             store,
             formPoster,
             checkoutActionCreator,
-            paymentMethodActionCreator,
             createGooglePayPaymentProcessor(store)
         )
     );

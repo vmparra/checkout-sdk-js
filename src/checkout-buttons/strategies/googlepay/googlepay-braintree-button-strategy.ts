@@ -1,10 +1,10 @@
 import { FormPoster } from '@bigcommerce/form-poster';
 
 import { Checkout, CheckoutActionCreator, CheckoutStore } from '../../../checkout';
-import { InvalidArgumentError, MissingDataError, MissingDataErrorType } from '../../../common/error/errors';
+import { InvalidArgumentError, MissingDataError, MissingDataErrorType, NotInitializedError, NotInitializedErrorType } from '../../../common/error/errors';
 import { bindDecorator as bind } from '../../../common/utility';
 import { PaymentMethodActionCreator } from '../../../payment';
-import { GooglePayAddress, GooglePayPaymentProcessor } from '../../../payment/strategies/googlepay';
+import { GooglePayPaymentProcessor } from '../../../payment/strategies/googlepay';
 import { CheckoutButtonInitializeOptions } from '../../checkout-button-options';
 import CheckoutButtonStrategy from '../checkout-button-strategy';
 
@@ -17,7 +17,6 @@ export default class GooglePayBraintreeButtonStrategy extends CheckoutButtonStra
         private _store: CheckoutStore,
         private _formPoster: FormPoster,
         private _checkoutActionCreator: CheckoutActionCreator,
-        private _paymentMethodActionCreator: PaymentMethodActionCreator,
         private _googlePayPaymentProcessor: GooglePayPaymentProcessor
     ) {
         super();
@@ -85,7 +84,7 @@ export default class GooglePayBraintreeButtonStrategy extends CheckoutButtonStra
 
     private _getMethodId(): string {
         if (!this._methodId) {
-            throw new MissingDataError(MissingDataErrorType.MissingPaymentMethod);
+            throw new NotInitializedError(NotInitializedErrorType.PaymentNotInitialized);
         }
 
         return this._methodId;
@@ -95,14 +94,11 @@ export default class GooglePayBraintreeButtonStrategy extends CheckoutButtonStra
     private _handleWalletButtonClick(event: Event): Promise<void> {
         event.preventDefault();
 
-        let shippingAddress: GooglePayAddress;
-
         return this._googlePayPaymentProcessor.displayWallet()
-            .then(paymentData => {
-                shippingAddress = paymentData.shippingAddress;
-                return this._googlePayPaymentProcessor.handleSuccess(paymentData);
-            })
-            .then(() => this._updateAddressAndPayment(shippingAddress))
+            .then(paymentData =>
+                this._googlePayPaymentProcessor.handleSuccess(paymentData)
+                    .then(() => this._googlePayPaymentProcessor.updateShippingAddress(paymentData.shippingAddress)))
+            .then(() => this._onPaymentSelectComplete())
             .catch(error => this._onError(error));
     }
 
@@ -119,14 +115,6 @@ export default class GooglePayBraintreeButtonStrategy extends CheckoutButtonStra
         if (error && error.message !== 'CANCELED') {
             throw new Error(error.message);
         }
-    }
-
-    private _updateAddressAndPayment(shippingAddress: GooglePayAddress): Promise<void> {
-        return Promise.all([
-            this._googlePayPaymentProcessor.updateShippingAddress(shippingAddress),
-            this._store.dispatch(this._checkoutActionCreator.loadCurrentCheckout()),
-            this._store.dispatch(this._paymentMethodActionCreator.loadPaymentMethod(this._getMethodId())),
-        ]).then(() => this._onPaymentSelectComplete());
     }
 
 }
