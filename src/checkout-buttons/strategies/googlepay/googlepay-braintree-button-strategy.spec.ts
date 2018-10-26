@@ -9,7 +9,7 @@ import { InvalidArgumentError } from '../../../common/error/errors';
 import { ConfigActionCreator, ConfigRequestSender } from '../../../config';
 import { getConfigState } from '../../../config/configs.mock';
 import { getCustomerState } from '../../../customer/customers.mock';
-import { PaymentMethod, PaymentMethodActionCreator, PaymentMethodRequestSender } from '../../../payment';
+import { PaymentMethod } from '../../../payment';
 import { getPaymentMethodsState } from '../../../payment/payment-methods.mock';
 import { createGooglePayPaymentProcessor, ButtonType, GooglePaymentData, GooglePayPaymentProcessor } from '../../../payment/strategies/googlepay';
 import { getGooglePaymentDataMock } from '../../../payment/strategies/googlepay/googlepay.mock';
@@ -22,7 +22,6 @@ describe('GooglePayBraintreeCheckoutButtonStrategy', () => {
     let formPoster: FormPoster;
     let checkoutButtonOptions: CheckoutButtonInitializeOptions;
     let paymentMethod: PaymentMethod;
-    let paymentMethodActionCreator: PaymentMethodActionCreator;
     let paymentProcessor: GooglePayPaymentProcessor;
     let checkoutActionCreator: CheckoutActionCreator;
     let requestSender: RequestSender;
@@ -42,9 +41,6 @@ describe('GooglePayBraintreeCheckoutButtonStrategy', () => {
         });
 
         requestSender = createRequestSender();
-        paymentMethodActionCreator = new PaymentMethodActionCreator(
-            new PaymentMethodRequestSender(requestSender)
-        );
 
         checkoutActionCreator = checkoutActionCreator = new CheckoutActionCreator(
             new CheckoutRequestSender(requestSender),
@@ -59,7 +55,6 @@ describe('GooglePayBraintreeCheckoutButtonStrategy', () => {
             store,
             formPoster,
             checkoutActionCreator,
-            paymentMethodActionCreator,
             paymentProcessor
         );
 
