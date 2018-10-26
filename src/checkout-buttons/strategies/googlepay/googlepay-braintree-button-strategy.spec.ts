@@ -127,28 +127,8 @@ describe('GooglePayBraintreeCheckoutButtonStrategy', () => {
                 expect(paymentProcessor.initialize).toHaveBeenCalledTimes(1);
             });
 
-            it('fails to initialize the strategy if no CheckoutButtonInitializeOptions is provided ', async () => {
-                checkoutButtonOptions = getCheckoutButtonOptions(Mode.Incomplete);
-
-                try {
-                    await strategy.initialize(checkoutButtonOptions);
-                } catch (e) {
-                    expect(e).toBeInstanceOf(InvalidArgumentError);
-                }
-            });
-
-            it('fails to set methodId if is not provided ', async () => {
-                checkoutButtonOptions = getCheckoutButtonOptions(Mode.UndefinedMethodId);
-
-                try {
-                    await strategy.initialize(checkoutButtonOptions);
-                } catch (e) {
-                    expect(e).toBeInstanceOf(InvalidArgumentError);
-                }
-            });
-
             it('fails to initialize the strategy if no container id is supplied', async () => {
-                checkoutButtonOptions = getCheckoutButtonOptions(Mode.UndefinedMethodId);
+                checkoutButtonOptions = getCheckoutButtonOptions(Mode.UndefinedContainer);
 
                 try {
                     await strategy.initialize(checkoutButtonOptions);
