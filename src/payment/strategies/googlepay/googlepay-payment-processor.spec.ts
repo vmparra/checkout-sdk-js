@@ -1,24 +1,26 @@
 import { createRequestSender, RequestSender } from '@bigcommerce/request-sender';
 import { createScriptLoader } from '@bigcommerce/script-loader';
 
-import { PaymentMethod, PaymentMethodActionCreator, PaymentMethodRequestSender } from '../..';
 import { BillingAddressActionCreator, BillingAddressRequestSender } from '../../../billing';
 import { getCartState } from '../../../cart/carts.mock';
-import { createCheckoutStore, CheckoutStore } from '../../../checkout';
+import { createCheckoutStore, CheckoutRequestSender, CheckoutStore } from '../../../checkout';
 import { getCheckoutState } from '../../../checkout/checkouts.mock';
 import {
     MissingDataError,
     MissingDataErrorType,
     NotInitializedError,
     NotInitializedErrorType,
-    StandardError
-} from '../../../common/error/errors';
+    StandardError} from '../../../common/error/errors';
 import { getConfigState } from '../../../config/configs.mock';
 import { getCustomerState } from '../../../customer/customers.mock';
+import ConsignmentActionCreator from '../../../shipping/consignment-action-creator';
+import ConsignmentRequestSender from '../../../shipping/consignment-request-sender';
+import PaymentMethod from '../../payment-method';
+import PaymentMethodActionCreator from '../../payment-method-action-creator';
+import PaymentMethodRequestSender from '../../payment-method-request-sender';
 import { getGooglePay, getPaymentMethodsState } from '../../payment-methods.mock';
 import { BraintreeScriptLoader, BraintreeSDKCreator } from '../braintree';
 
-import createGooglePayPaymentProcessor from './create-googlepay-payment-processor';
 import {
     GooglePaymentsError,
     GooglePayClient,
@@ -47,10 +49,7 @@ describe('GooglePayPaymentProcessor', () => {
     let requestSender: RequestSender;
 
     beforeEach(() => {
-        const _requestSender: PaymentMethodRequestSender = new PaymentMethodRequestSender(requestSender);
         const scriptLoader = createScriptLoader();
-        const braintreeScriptLoader = new BraintreeScriptLoader(scriptLoader);
-        const braintreeSdkCreator = new BraintreeSDKCreator(braintreeScriptLoader);
         billingAddressActionCreator = new BillingAddressActionCreator(new BillingAddressRequestSender(requestSender));
 
         store = createCheckoutStore({
@@ -60,12 +59,23 @@ describe('GooglePayPaymentProcessor', () => {
             cart: getCartState(),
             paymentMethods: getPaymentMethodsState(),
         });
-        paymentMethodActionCreator = new PaymentMethodActionCreator(_requestSender);
-        googlePayScriptLoader = new GooglePayScriptLoader(createScriptLoader());
-        googlePayInitializer = new GooglePayBraintreeInitializer(braintreeSdkCreator);
+        paymentMethodActionCreator = new PaymentMethodActionCreator(new PaymentMethodRequestSender(requestSender));
+        googlePayScriptLoader = new GooglePayScriptLoader(scriptLoader);
+        googlePayInitializer = new GooglePayBraintreeInitializer(
+            new BraintreeSDKCreator(new BraintreeScriptLoader(scriptLoader)));
         requestSender = createRequestSender();
 
-        processor = createGooglePayPaymentProcessor(store);
+        processor =  new GooglePayPaymentProcessor(
+            store,
+            paymentMethodActionCreator,
+            googlePayScriptLoader,
+            googlePayInitializer,
+            billingAddressActionCreator,
+            new ConsignmentActionCreator(
+                new ConsignmentRequestSender(requestSender),
+                new CheckoutRequestSender(requestSender)),
+            requestSender
+        );
     });
 
     it('creates an instance of GooglePayPaymentProcessor', () => {
@@ -227,7 +237,7 @@ describe('GooglePayPaymentProcessor', () => {
         });
 
         it('handles success response', async () => {
-            jest.spyOn(googlePayInitializer, 'parseResponse').mockReturnValue(Promise.resolve(tokenizePayload));
+            jest.spyOn(googlePayInitializer, 'parseResponse').mockReturnValue(tokenizePayload);
             jest.spyOn(requestSender, 'post').mockReturnValue(Promise.resolve());
             jest.spyOn(store.getState().billingAddress, 'getBillingAddress').mockReturnValue(getGooglePayAddressMock());
             jest.spyOn(billingAddressActionCreator, 'updateAddress');
@@ -256,7 +266,7 @@ describe('GooglePayPaymentProcessor', () => {
         });
 
         it('throws when billingAddress from state is missed', async () => {
-            jest.spyOn(googlePayInitializer, 'parseResponse').mockReturnValue(Promise.resolve(tokenizePayload));
+            jest.spyOn(googlePayInitializer, 'parseResponse').mockReturnValue(tokenizePayload);
             jest.spyOn(requestSender, 'post').mockReturnValue(Promise.resolve());
             const googlePaymentDataMock = getGooglePaymentDataMock();
             googlePaymentDataMock.paymentMethodData.info.billingAddress = getGooglePayAddressMock();
