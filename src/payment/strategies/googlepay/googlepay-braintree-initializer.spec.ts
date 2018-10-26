@@ -120,14 +120,14 @@ describe('GooglePayBraintreeInitializer', () => {
             expect(tokenizePayload).toBeTruthy();
         });
 
-        it('parses a response from google pay payload received', async () => {
-            const googlePaymentDataMock = getGooglePaymentDataMock();
-            googlePaymentDataMock.paymentMethodData.tokenizationData.token = '';
-            await googlePayBraintreeInitializer.initialize(getCheckoutMock(), getPaymentMethodMock(), false);
+        // it('parses a response from google pay payload received', async () => {
+        //     const googlePaymentDataMock = getGooglePaymentDataMock();
+        //     googlePaymentDataMock.paymentMethodData.tokenizationData.token = '';
+        //     await googlePayBraintreeInitializer.initialize(getCheckoutMock(), getPaymentMethodMock(), false);
 
-            googlePayBraintreeInitializer.parseResponse(googlePaymentDataMock).catch(error => {
-                expect(error).toBeInstanceOf(SyntaxError);
-            });
-        });
+        //     googlePayBraintreeInitializer.parseResponse(googlePaymentDataMock).catch(error => {
+        //         expect(error).toBeInstanceOf(SyntaxError);
+        //     });
+        // });
     });
 });

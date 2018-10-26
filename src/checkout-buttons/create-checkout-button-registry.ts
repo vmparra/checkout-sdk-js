@@ -9,15 +9,16 @@ import { PaymentMethodActionCreator, PaymentMethodRequestSender } from '../payme
 import { BraintreeScriptLoader, BraintreeSDKCreator } from '../payment/strategies/braintree';
 
 import { createGooglePayPaymentProcessor } from '../payment/strategies/googlepay';
-import {
-    GooglePayBraintreeInitializer,
-    GooglePayPaymentProcessor,
-    GooglePayScriptLoader
-} from '../payment/strategies/googlepay/';
 import { MasterpassScriptLoader } from '../payment/strategies/masterpass';
 import { PaypalScriptLoader } from '../payment/strategies/paypal';
 
-import { BraintreePaypalButtonStrategy, CheckoutButtonMethodType, CheckoutButtonStrategy, GooglePayBraintreeButtonStrategy, MasterpassButtonStrategy } from './strategies';
+import {
+    BraintreePaypalButtonStrategy,
+    CheckoutButtonMethodType,
+    CheckoutButtonStrategy,
+    GooglePayBraintreeButtonStrategy,
+    MasterpassButtonStrategy
+} from './strategies';
 
 export default function createCheckoutButtonRegistry(
     store: CheckoutStore,
@@ -29,8 +30,6 @@ export default function createCheckoutButtonRegistry(
         new CheckoutRequestSender(requestSender),
         new ConfigActionCreator(new ConfigRequestSender(requestSender))
     );
-    const braintreeScriptLoader = new BraintreeScriptLoader(scriptLoader);
-    const braintreeSDKCreator = new BraintreeSDKCreator(braintreeScriptLoader);
     const paymentMethodActionCreator = new PaymentMethodActionCreator(new PaymentMethodRequestSender(requestSender));
     const formPoster = createFormPoster();
 
