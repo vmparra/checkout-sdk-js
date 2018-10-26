@@ -50,19 +50,12 @@ export enum Mode {
 
 export function getCheckoutButtonOptions(mode: Mode = Mode.Full): CheckoutButtonInitializeOptions {
     const methodId = { methodId: CheckoutButtonMethodType.GOOGLEPAY_BRAINTREE };
-    const undefinedMethodId = { methodId: '' };
     const containerId = 'googlePayCheckoutButton';
     const undefinedContainerId = { containerId : '' };
     const invalidContainerId = { containerId: 'invalid_container' };
     const googlepay = { googlepaybraintree: { } };
 
     switch (mode) {
-        case Mode.Incomplete: {
-            return { ...methodId };
-        }
-        case Mode.UndefinedMethodId: {
-            return { ...undefinedMethodId, containerId };
-        }
         case Mode.UndefinedContainer: {
             return { ...methodId, ...undefinedContainerId };
         }
