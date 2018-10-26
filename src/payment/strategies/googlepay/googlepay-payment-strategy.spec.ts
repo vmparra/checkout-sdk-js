@@ -1,8 +1,6 @@
 import { createRequestSender } from '@bigcommerce/request-sender';
-import { createScriptLoader } from '@bigcommerce/script-loader';
 
 import { PaymentInitializeOptions, PaymentMethod, PaymentMethodRequestSender, PaymentRequestSender } from '../..';
-import { BillingAddressActionCreator, BillingAddressRequestSender } from '../../../billing';
 import { getCartState } from '../../../cart/carts.mock';
 import {
     createCheckoutStore,
@@ -13,8 +11,11 @@ import {
 } from '../../../checkout';
 import { getCheckoutState } from '../../../checkout/checkouts.mock';
 import {
-    InvalidArgumentError, MissingDataError, MissingDataErrorType,
-    NotInitializedError, NotInitializedErrorType
+    InvalidArgumentError,
+    MissingDataError,
+    MissingDataErrorType,
+    NotInitializedError,
+    NotInitializedErrorType
 } from '../../../common/error/errors';
 import { ConfigActionCreator, ConfigRequestSender } from '../../../config';
 import { getConfigState } from '../../../config/configs.mock';
@@ -28,26 +29,20 @@ import {
     PaymentStrategyActionCreator
 } from '../../../payment';
 import { getGooglePay, getPaymentMethodsState } from '../../payment-methods.mock';
-import { BraintreeScriptLoader, BraintreeSDKCreator } from '../braintree';
 
 import createGooglePayPaymentProcessor from './create-googlepay-payment-processor';
-import { GooglePayInitializer} from './googlepay';
-import GooglePayBraintreeInitializer from './googlepay-braintree-initializer';
 import GooglePayPaymentProcessor from './googlepay-payment-processor';
 import GooglePayPaymentStrategy from './googlepay-payment-strategy';
-import GooglePayScriptLoader from './googlepay-script-loader';
-import { getGoogleOrderRequestBody, getGooglePaymentDataMock, getGooglePaymentDataPayload } from './googlepay.mock';
+import { getGoogleOrderRequestBody, getGooglePaymentDataMock } from './googlepay.mock';
 
 describe('GooglePayPaymentStrategy', () => {
     let store: CheckoutStore;
-    let googlePayScriptLoader: GooglePayScriptLoader;
     let strategy: GooglePayPaymentStrategy;
     let checkoutActionCreator: CheckoutActionCreator;
     let paymentMethodActionCreator: PaymentMethodActionCreator;
     let paymentStrategyActionCreator: PaymentStrategyActionCreator;
     let paymentActionCreator: PaymentActionCreator;
     let orderActionCreator: OrderActionCreator;
-    let googlePayInitializer: GooglePayInitializer;
     let googlePayPaymentProcessor: GooglePayPaymentProcessor;
     let container: HTMLDivElement;
     let walletButton: HTMLAnchorElement;
@@ -69,12 +64,7 @@ describe('GooglePayPaymentStrategy', () => {
         const paymentMethodRequestSender: PaymentMethodRequestSender = new PaymentMethodRequestSender(requestSender);
         const paymentClient = createPaymentClient(store);
         const registry = createPaymentStrategyRegistry(store, paymentClient, requestSender);
-        const scriptLoader = createScriptLoader();
-        const braintreeScriptLoader = new BraintreeScriptLoader(scriptLoader);
-        const braintreeSdkCreator = new BraintreeSDKCreator(braintreeScriptLoader);
-        const billingAddressActionCreator = new BillingAddressActionCreator(new BillingAddressRequestSender(requestSender));
 
-        googlePayScriptLoader = new GooglePayScriptLoader(scriptLoader);
         checkoutActionCreator = new CheckoutActionCreator(checkoutRequestSender, configActionCreator);
         paymentMethodActionCreator = new PaymentMethodActionCreator(paymentMethodRequestSender);
         paymentStrategyActionCreator = new PaymentStrategyActionCreator(registry, orderActionCreator);
@@ -82,10 +72,10 @@ describe('GooglePayPaymentStrategy', () => {
         orderActionCreator = new OrderActionCreator(
             paymentClient,
             new CheckoutValidator(
-                new CheckoutRequestSender(createRequestSender())
+                new CheckoutRequestSender(requestSender)
             )
         );
-        googlePayInitializer = new GooglePayBraintreeInitializer(braintreeSdkCreator);
+
         googlePayPaymentProcessor = createGooglePayPaymentProcessor(store);
 
         strategy = new GooglePayPaymentStrategy(
@@ -107,7 +97,6 @@ describe('GooglePayPaymentStrategy', () => {
 
         jest.spyOn(walletButton, 'removeEventListener');
         jest.spyOn(requestSender, 'post').mockReturnValue(Promise.resolve());
-        jest.spyOn(googlePayInitializer, 'initialize').mockReturnValue(getGooglePaymentDataPayload());
         jest.spyOn(checkoutActionCreator, 'loadCurrentCheckout').mockReturnValue(Promise.resolve());
         jest.spyOn(paymentMethodActionCreator, 'loadPaymentMethod').mockReturnValue(Promise.resolve(store.getState()));
         jest.spyOn(googlePayPaymentProcessor, 'initialize').mockReturnValue(Promise.resolve());

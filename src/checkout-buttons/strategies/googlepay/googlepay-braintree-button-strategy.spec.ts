@@ -1,9 +1,7 @@
 import { createFormPoster, FormPoster } from '@bigcommerce/form-poster';
 import { createRequestSender, RequestSender } from '@bigcommerce/request-sender';
-import { getScriptLoader } from '@bigcommerce/script-loader';
 
 import { CheckoutButtonMethodType, GooglePayBraintreeButtonStrategy } from '../';
-import { BillingAddressActionCreator, BillingAddressRequestSender } from '../../../billing';
 import { getCartState } from '../../../cart/carts.mock';
 import { createCheckoutStore, CheckoutActionCreator, CheckoutRequestSender, CheckoutStore } from '../../../checkout';
 import { getCheckoutState } from '../../../checkout/checkouts.mock';
@@ -13,10 +11,8 @@ import { getConfigState } from '../../../config/configs.mock';
 import { getCustomerState } from '../../../customer/customers.mock';
 import { PaymentMethod, PaymentMethodActionCreator, PaymentMethodRequestSender } from '../../../payment';
 import { getPaymentMethodsState } from '../../../payment/payment-methods.mock';
-import { BraintreeScriptLoader, BraintreeSDKCreator } from '../../../payment/strategies/braintree';
-import { ButtonType, GooglePaymentData, GooglePayBraintreeInitializer, GooglePayPaymentProcessor, GooglePayScriptLoader } from '../../../payment/strategies/googlepay';
+import { createGooglePayPaymentProcessor, ButtonType, GooglePaymentData, GooglePayPaymentProcessor } from '../../../payment/strategies/googlepay';
 import { getGooglePaymentDataMock } from '../../../payment/strategies/googlepay/googlepay.mock';
-import { ConsignmentActionCreator, ConsignmentRequestSender } from '../../../shipping';
 import { CheckoutButtonInitializeOptions } from '../../checkout-button-options';
 
 import { getCheckoutButtonOptions, getPaymentMethod, Mode } from './googlepay-braintree-button.mock';
@@ -55,18 +51,7 @@ describe('GooglePayBraintreeCheckoutButtonStrategy', () => {
             new ConfigActionCreator(new ConfigRequestSender(requestSender))
         );
 
-        paymentProcessor = new GooglePayPaymentProcessor(
-            store,
-            new PaymentMethodActionCreator(new PaymentMethodRequestSender(requestSender)),
-            new GooglePayScriptLoader(getScriptLoader()),
-            new GooglePayBraintreeInitializer(
-                new BraintreeSDKCreator(new BraintreeScriptLoader(getScriptLoader()))),
-            new BillingAddressActionCreator(new BillingAddressRequestSender(requestSender)),
-            new ConsignmentActionCreator(
-                new ConsignmentRequestSender(requestSender),
-                new CheckoutRequestSender(requestSender)),
-            requestSender
-        );
+        paymentProcessor = createGooglePayPaymentProcessor(store);
 
         formPoster = createFormPoster();
 
