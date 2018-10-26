@@ -3,7 +3,6 @@ import { FormPoster } from '@bigcommerce/form-poster';
 import { Checkout, CheckoutActionCreator, CheckoutStore } from '../../../checkout';
 import { InvalidArgumentError, MissingDataError, MissingDataErrorType, NotInitializedError, NotInitializedErrorType } from '../../../common/error/errors';
 import { bindDecorator as bind } from '../../../common/utility';
-import { PaymentMethodActionCreator } from '../../../payment';
 import { GooglePayPaymentProcessor } from '../../../payment/strategies/googlepay';
 import { CheckoutButtonInitializeOptions } from '../../checkout-button-options';
 import CheckoutButtonStrategy from '../checkout-button-strategy';
@@ -116,5 +115,4 @@ export default class GooglePayBraintreeButtonStrategy extends CheckoutButtonStra
             throw new Error(error.message);
         }
     }
-
 }
