@@ -1,12 +1,13 @@
-import { CustomerCredentials, CustomerInitializeOptions, CustomerRequestOptions } from '..';
-import { FormPoster } from '../../../node_modules/@bigcommerce/form-poster/lib';
-import { CheckoutStore, InternalCheckoutSelectors } from '../../checkout';
-import { InvalidArgumentError, MissingDataError, MissingDataErrorType, NotImplementedError } from '../../common/error/errors';
-import { bindDecorator as bind } from '../../common/utility';
-import { GooglePayPaymentProcessor } from '../../payment/strategies/googlepay';
-import { RemoteCheckoutActionCreator } from '../../remote-checkout';
+import { FormPoster } from '@bigcommerce/form-poster';
 
-import CustomerStrategy from './customer-strategy';
+import { CheckoutStore, InternalCheckoutSelectors } from '../../../checkout';
+import { InvalidArgumentError, MissingDataError, MissingDataErrorType, NotImplementedError } from '../../../common/error/errors';
+import { bindDecorator as bind } from '../../../common/utility';
+import { GooglePayPaymentProcessor } from '../../../payment/strategies/googlepay';
+import { RemoteCheckoutActionCreator } from '../../../remote-checkout';
+import CustomerCredentials from '../../customer-credentials';
+import { CustomerInitializeOptions, CustomerRequestOptions } from '../../customer-request-options';
+import CustomerStrategy from '../customer-strategy';
 
 export default class GooglePayBraintreeCustomerStrategy extends CustomerStrategy {
     private _walletButton?: HTMLElement;

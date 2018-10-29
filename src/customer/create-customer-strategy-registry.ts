@@ -21,6 +21,7 @@ import {
     CustomerStrategy,
     DefaultCustomerStrategy,
     GooglePayBraintreeCustomerStrategy,
+    GooglePayStripeCustomerStrategy,
     MasterpassCustomerStrategy,
     SquareCustomerStrategy
 } from './strategies';
@@ -98,6 +99,15 @@ export default function createCustomerStrategyRegistry(
             formPoster
         )
     );
+
+    registry.register('googlepaystripe', () =>
+    new GooglePayStripeCustomerStrategy(
+        store,
+        remoteCheckoutActionCreator,
+        createGooglePayPaymentProcessor(store),
+        formPoster
+    )
+);
 
     registry.register('default', () =>
         new DefaultCustomerStrategy(
