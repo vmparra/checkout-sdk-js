@@ -1,20 +1,18 @@
-import {
-    PaymentActionCreator,
-    PaymentInitializeOptions,
-    PaymentMethodActionCreator,
-    PaymentRequestOptions,
-    PaymentStrategyActionCreator
-} from '../..';
+
 import { CheckoutActionCreator, CheckoutStore, InternalCheckoutSelectors } from '../../../checkout';
-import { NotInitializedError } from '../../../common/error/errors';
 import {
     InvalidArgumentError,
     MissingDataError,
     MissingDataErrorType,
+    NotInitializedError,
     NotInitializedErrorType,
 } from '../../../common/error/errors';
 import { bindDecorator as bind } from '../../../common/utility';
 import { OrderActionCreator, OrderRequestBody } from '../../../order';
+import PaymentActionCreator from '../../payment-action-creator';
+import PaymentMethodActionCreator from '../../payment-method-action-creator';
+import { PaymentInitializeOptions, PaymentRequestOptions } from '../../payment-request-options';
+import PaymentStrategyActionCreator from '../../payment-strategy-action-creator';
 import PaymentStrategy from '../payment-strategy';
 
 import { GooglePaymentData, PaymentMethodData } from './googlepay';

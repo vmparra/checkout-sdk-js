@@ -13,7 +13,9 @@ import createGooglePayPaymentProcessor from '../payment/strategies/googlepay/cre
 import { MasterpassScriptLoader } from '../payment/strategies/masterpass';
 import { RemoteCheckoutActionCreator, RemoteCheckoutRequestSender } from '../remote-checkout';
 
-import { CustomerActionCreator, CustomerRequestSender, CustomerStrategyActionCreator } from './';
+import CustomerActionCreator from './customer-action-creator';
+import CustomerRequestSender from './customer-request-sender';
+import CustomerStrategyActionCreator from './customer-strategy-action-creator';
 import {
     AmazonPayCustomerStrategy,
     BraintreeVisaCheckoutCustomerStrategy,
@@ -21,7 +23,6 @@ import {
     CustomerStrategy,
     DefaultCustomerStrategy,
     GooglePayBraintreeCustomerStrategy,
-    GooglePayStripeCustomerStrategy,
     MasterpassCustomerStrategy,
     SquareCustomerStrategy
 } from './strategies';
@@ -99,15 +100,6 @@ export default function createCustomerStrategyRegistry(
             formPoster
         )
     );
-
-    registry.register('googlepaystripe', () =>
-    new GooglePayStripeCustomerStrategy(
-        store,
-        remoteCheckoutActionCreator,
-        createGooglePayPaymentProcessor(store),
-        formPoster
-    )
-);
 
     registry.register('default', () =>
         new DefaultCustomerStrategy(

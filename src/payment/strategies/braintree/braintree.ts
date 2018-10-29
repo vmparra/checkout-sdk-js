@@ -1,10 +1,5 @@
-import {
-    GooglePaymentData,
-    GooglePayBraintreeDataRequest,
-    GooglePayBraintreePaymentDataRequestV1,
-    GooglePayCreator,
-    TokenizePayload,
-} from '../googlepay';
+import { GooglePaymentData, GooglePayCreator, TokenizePayload } from '../googlepay';
+import { GooglePayBraintreeDataRequest, GooglePayBraintreePaymentDataRequestV1 } from '../googlepay/googlepay-braintree';
 import { PaypalAuthorizeData, PaypalSDK } from '../paypal';
 
 import {

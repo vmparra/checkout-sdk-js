@@ -14,10 +14,10 @@ import { GooglePayBraintreeSDK } from '../braintree';
 import {
     GooglePaymentData,
     GooglePayAddress,
-    GooglePayBraintreePaymentDataRequestV1,
     GooglePayPaymentDataRequestV2,
     GooglePaySDK,
 } from './googlepay';
+import { GooglePayBraintreePaymentDataRequestV1 } from './googlepay-braintree';
 
 export function getGooglePaySDKMock(): GooglePaySDK {
     return {

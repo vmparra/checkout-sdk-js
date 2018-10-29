@@ -1,34 +1,8 @@
-import { createRequestSender } from '@bigcommerce/request-sender/lib';
-import { getScriptLoader } from '@bigcommerce/script-loader/lib/';
 
-import { CheckoutButtonMethodType } from '../';
-import { BillingAddressActionCreator, BillingAddressRequestSender } from '../../../billing';
-import { CheckoutRequestSender, CheckoutStore } from '../../../checkout';
-import { PaymentMethod, PaymentMethodActionCreator, PaymentMethodRequestSender } from '../../../payment';
+import { PaymentMethod } from '../../../payment';
 import { getGooglePay } from '../../../payment/payment-methods.mock';
-import { BraintreeScriptLoader, BraintreeSDKCreator } from '../../../payment/strategies/braintree';
-import { GooglePayBraintreeInitializer, GooglePayPaymentProcessor, GooglePayScriptLoader } from '../../../payment/strategies/googlepay';
-import { ConsignmentActionCreator, ConsignmentRequestSender } from '../../../shipping';
 import { CheckoutButtonInitializeOptions } from '../../checkout-button-options';
-
-const requestSender = createRequestSender();
-const scriptLoader = getScriptLoader();
-const braintreeSdkCreator = new BraintreeSDKCreator(new BraintreeScriptLoader(scriptLoader));
-
-export function getGooglePayPaymentProcessor(store: CheckoutStore): GooglePayPaymentProcessor {
-
-    return new GooglePayPaymentProcessor(
-        store,
-        new PaymentMethodActionCreator(new PaymentMethodRequestSender(requestSender)),
-        new GooglePayScriptLoader(scriptLoader),
-        new GooglePayBraintreeInitializer(braintreeSdkCreator),
-        new BillingAddressActionCreator(new BillingAddressRequestSender(requestSender)),
-        new ConsignmentActionCreator(
-                new ConsignmentRequestSender(requestSender),
-                new CheckoutRequestSender(requestSender)),
-        requestSender
-    );
-}
+import { CheckoutButtonMethodType } from '../checkout-button-method-type';
 
 export function getPaymentMethod(): PaymentMethod {
     return {
@@ -42,10 +16,8 @@ export function getPaymentMethod(): PaymentMethod {
 
 export enum Mode {
     Full,
-    UndefinedMethodId,
     UndefinedContainer,
     InvalidContainer,
-    Incomplete,
 }
 
 export function getCheckoutButtonOptions(mode: Mode = Mode.Full): CheckoutButtonInitializeOptions {

@@ -1,10 +1,8 @@
-import { PaymentMethod } from '../..';
 import { Checkout } from '../../../checkout';
+import PaymentMethod from '../../payment-method';
 import { BraintreeModuleCreator, GooglePayBraintreeSDK } from '../braintree';
 
 export type EnvironmentType = 'PRODUCTION' | 'TEST';
-type AddressFormat = 'FULL' | 'MIN';
-type TotalPriceStatus = 'ESTIMATED' | 'FINAL' | 'NOT_CURRENTLY_KNOWN';
 type TokenizeType = 'AndroidPayCard' | 'CreditCard';
 
 export interface GooglePayInitializer {
@@ -17,64 +15,6 @@ export interface GooglePayCreator extends BraintreeModuleCreator<GooglePayBraint
 
 export interface GooglePayPaymentOptions {
     environment: EnvironmentType;
-}
-
-export interface GooglePayBraintreeDataRequest {
-    merchantInfo: {
-        authJwt?: string,
-        merchantId?: string,
-        merchantName?: string,
-    };
-    transactionInfo: {
-        currencyCode: string,
-        totalPriceStatus: TotalPriceStatus,
-        totalPrice: string,
-    };
-    cardRequirements: {
-        billingAddressRequired: boolean,
-        billingAddressFormat: AddressFormat,
-    };
-    emailRequired: boolean;
-    phoneNumberRequired: boolean;
-    shippingAddressRequired: boolean;
-}
-
-export interface GooglePayBraintreePaymentDataRequestV1 {
-    allowedPaymentMethods: string[];
-    apiVersion: number;
-    cardRequirements: {
-        allowedCardNetworks: string[];
-        billingAddressFormat: string;
-        billingAddressRequired: boolean;
-    };
-    enviroment: string;
-    i: {
-        googleTransactionId: string;
-        startTimeMs: number;
-    };
-    merchantInfo: {
-        googleMerchantId: string;
-        googleMerchantName: string;
-        authJwt?: string;
-    };
-    paymentMethodTokenizationParameters: {
-        parameters: {
-            'braintree:apiVersion': string;
-            'braintree:authorizationFingerprint': string;
-            'braintree:merchantId': string;
-            'braintree:metadata': string;
-            'braintree:sdkVersion': string;
-            gateway: string;
-        };
-        tokenizationType: string;
-    };
-    shippingAddressRequired: boolean;
-    phoneNumberRequired: boolean;
-    transactionInfo: {
-        currencyCode: string;
-        totalPrice: string;
-        totalPriceStatus: string;
-    };
 }
 
 export interface GooglePayIsReadyToPayResponse {

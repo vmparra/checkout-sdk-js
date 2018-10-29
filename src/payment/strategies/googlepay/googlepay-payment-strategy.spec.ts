@@ -1,6 +1,5 @@
 import { createRequestSender } from '@bigcommerce/request-sender';
 
-import { PaymentInitializeOptions, PaymentMethod, PaymentMethodRequestSender, PaymentRequestSender } from '../..';
 import { getCartState } from '../../../cart/carts.mock';
 import {
     createCheckoutStore,
@@ -25,9 +24,14 @@ import {
     createPaymentClient,
     createPaymentStrategyRegistry,
     PaymentActionCreator,
+    PaymentInitializeOptions,
+    PaymentMethod,
     PaymentMethodActionCreator,
+    PaymentMethodRequestSender,
+    PaymentRequestSender,
     PaymentStrategyActionCreator
 } from '../../../payment';
+
 import { getGooglePay, getPaymentMethodsState } from '../../payment-methods.mock';
 
 import createGooglePayPaymentProcessor from './create-googlepay-payment-processor';

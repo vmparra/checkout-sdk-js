@@ -18,14 +18,22 @@ export default function createGooglePayPaymentProcessor(store: CheckoutStore): G
 
     return new GooglePayPaymentProcessor(
         store,
-        new PaymentMethodActionCreator(new PaymentMethodRequestSender(requestSender)),
+        new PaymentMethodActionCreator(
+            new PaymentMethodRequestSender(requestSender)
+        ),
         new GooglePayScriptLoader(scriptLoader),
         new GooglePayBraintreeInitializer(
-            new BraintreeSDKCreator(new BraintreeScriptLoader(scriptLoader))),
-        new BillingAddressActionCreator(new BillingAddressRequestSender(requestSender)),
+            new BraintreeSDKCreator(
+                new BraintreeScriptLoader(scriptLoader)
+            )
+        ),
+        new BillingAddressActionCreator(
+            new BillingAddressRequestSender(requestSender)
+        ),
         new ConsignmentActionCreator(
             new ConsignmentRequestSender(requestSender),
-            new CheckoutRequestSender(requestSender)),
+            new CheckoutRequestSender(requestSender)
+        ),
         requestSender
     );
 }

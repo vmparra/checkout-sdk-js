@@ -277,7 +277,7 @@ describe('GooglePayPaymentProcessor', () => {
                 await processor.handleSuccess(getGooglePaymentDataMock());
             } catch (error) {
                 expect(error).toBeInstanceOf(MissingDataError);
-                expect(error).toEqual(new MissingDataError(MissingDataErrorType.MissingPaymentMethod));
+                expect(error).toEqual(new MissingDataError(MissingDataErrorType.MissingBillingAddress));
             }
         });
     });

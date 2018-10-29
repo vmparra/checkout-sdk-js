@@ -54,7 +54,7 @@ export default class GooglePayPaymentProcessor {
     }
 
     createButton(
-        onClick: () => {},
+        onClick: () => void,
         buttonType: ButtonType = ButtonType.Short,
         buttonColor: ButtonColor = ButtonColor.Default
     ): HTMLElement {
@@ -105,7 +105,8 @@ export default class GooglePayPaymentProcessor {
 
     updateShippingAddress(shippingAddress: GooglePayAddress): Promise<InternalCheckoutSelectors> {
         return this._store.dispatch(
-            this._consigmentActionCreator.updateAddress(this._mapGooglePayAddressToShippingAddress(shippingAddress)));
+            this._consigmentActionCreator.updateAddress(this._mapGooglePayAddressToShippingAddress(shippingAddress))
+        );
     }
 
     private _configureWallet(): Promise<void> {
@@ -131,11 +132,8 @@ export default class GooglePayPaymentProcessor {
                     this._googlePayScriptLoader.load(),
                     this._googlePayInitializer.initialize(checkout, paymentMethod, hasShippingAddress),
                 ]).then(([googlePay, paymentDataRequest]) => {
-                        this._googlePayClient = this._getGooglePayClient(googlePay, testMode);
-                        this._paymentDataRequest = paymentDataRequest;
-                })
-                .catch((error: Error) => {
-                    throw error;
+                    this._googlePayClient = this._getGooglePayClient(googlePay, testMode);
+                    this._paymentDataRequest = paymentDataRequest;
                 });
             });
     }
@@ -209,7 +207,7 @@ export default class GooglePayPaymentProcessor {
         };
     }
 
-    private _postForm(postPaymentData: TokenizePayload): Promise<Response<any>> {
+    private _postForm(postPaymentData: TokenizePayload): Promise<Response<void>> {
         const cardInformation = postPaymentData.details;
 
         return this._requestSender.post('/checkout.php', {
@@ -231,7 +229,7 @@ export default class GooglePayPaymentProcessor {
         const remoteBillingAddress = this._store.getState().billingAddress.getBillingAddress();
 
         if (!remoteBillingAddress) {
-            throw new MissingDataError(MissingDataErrorType.MissingPaymentMethod);
+            throw new MissingDataError(MissingDataErrorType.MissingBillingAddress);
         }
 
         const googlePayAddressMapped = this._mapGooglePayAddressToBillingAddress(paymentData, remoteBillingAddress.id);

@@ -1,17 +1,16 @@
-import { PaymentMethod } from '../..';
+
 import { Checkout } from '../../../checkout';
 import { MissingDataError, MissingDataErrorType } from '../../../common/error/errors';
-import StandardError from '../../../common/error/errors/standard-error';
+import PaymentMethod from '../../payment-method';
 import { BraintreeSDKCreator, GooglePayBraintreeSDK } from '../braintree';
 
 import {
     GooglePaymentData,
-    GooglePayBraintreeDataRequest,
-    GooglePayBraintreePaymentDataRequestV1,
     GooglePayInitializer,
     GooglePayPaymentDataRequestV2,
     TokenizePayload
 } from './googlepay';
+import { GooglePayBraintreeDataRequest, GooglePayBraintreePaymentDataRequestV1 } from './googlepay-braintree';
 
 export default class GooglePayBraintreeInitializer implements GooglePayInitializer {
     private _googlePaymentInstance!: GooglePayBraintreeSDK;
@@ -38,9 +37,8 @@ export default class GooglePayBraintreeInitializer implements GooglePayInitializ
                 return this._createGooglePayPayload(
                     checkout,
                     paymentMethod.initializationData,
-                    hasShippingAddress);
-            }).catch((error: Error) => {
-                throw new StandardError(error.message);
+                    hasShippingAddress
+                );
             });
     }
 

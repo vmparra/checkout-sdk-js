@@ -1,7 +1,6 @@
 import { createFormPoster, FormPoster } from '@bigcommerce/form-poster';
 import { createRequestSender, RequestSender } from '@bigcommerce/request-sender';
 
-import { CheckoutButtonMethodType, GooglePayBraintreeButtonStrategy } from '../';
 import { getCartState } from '../../../cart/carts.mock';
 import { createCheckoutStore, CheckoutActionCreator, CheckoutRequestSender, CheckoutStore } from '../../../checkout';
 import { getCheckoutState } from '../../../checkout/checkouts.mock';
@@ -14,7 +13,9 @@ import { getPaymentMethodsState } from '../../../payment/payment-methods.mock';
 import { createGooglePayPaymentProcessor, ButtonType, GooglePaymentData, GooglePayPaymentProcessor } from '../../../payment/strategies/googlepay';
 import { getGooglePaymentDataMock } from '../../../payment/strategies/googlepay/googlepay.mock';
 import { CheckoutButtonInitializeOptions } from '../../checkout-button-options';
+import { CheckoutButtonMethodType } from '../checkout-button-method-type';
 
+import GooglePayBraintreeButtonStrategy from './googlepay-braintree-button-strategy';
 import { getCheckoutButtonOptions, getPaymentMethod, Mode } from './googlepay-braintree-button.mock';
 
 describe('GooglePayBraintreeCheckoutButtonStrategy', () => {
