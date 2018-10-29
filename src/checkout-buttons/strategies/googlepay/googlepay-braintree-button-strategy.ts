@@ -1,7 +1,7 @@
 import { FormPoster } from '@bigcommerce/form-poster';
 
-import { Checkout, CheckoutActionCreator, CheckoutStore } from '../../../checkout';
-import { InvalidArgumentError, MissingDataError, MissingDataErrorType, NotInitializedError, NotInitializedErrorType } from '../../../common/error/errors';
+import { CheckoutActionCreator, CheckoutStore } from '../../../checkout';
+import { InvalidArgumentError, NotInitializedError, NotInitializedErrorType } from '../../../common/error/errors';
 import { bindDecorator as bind } from '../../../common/utility';
 import { GooglePayPaymentProcessor } from '../../../payment/strategies/googlepay';
 import { CheckoutButtonInitializeOptions } from '../../checkout-button-options';
@@ -9,7 +9,6 @@ import CheckoutButtonStrategy from '../checkout-button-strategy';
 
 export default class GooglePayBraintreeButtonStrategy extends CheckoutButtonStrategy {
     private _methodId?: string;
-    private _checkout?: Checkout;
     private _walletButton?: HTMLElement;
 
     constructor(
@@ -35,21 +34,15 @@ export default class GooglePayBraintreeButtonStrategy extends CheckoutButtonStra
         this._methodId = methodId;
 
         return this._store.dispatch(this._checkoutActionCreator.loadDefaultCheckout())
-            .then(stateCheckout => {
-                this._checkout = stateCheckout.checkout.getCheckout();
-                if (!this._checkout || !this._checkout.cart.id) {
-                    throw new MissingDataError(MissingDataErrorType.MissingCart);
-                }
+            .then(() => this._googlePayPaymentProcessor.initialize(this._getMethodId())
+                .then(() => {
+                    this._walletButton = this._createSignInButton(containerId);
 
-                return this._googlePayPaymentProcessor.initialize(this._getMethodId())
-                    .then(() => {
-                        this._walletButton = this._createSignInButton(containerId);
-
-                        if (this._walletButton) {
-                            this._walletButton.addEventListener('click', this._handleWalletButtonClick);
-                        }
-                    });
-            }).then(() => super.initialize(options));
+                    if (this._walletButton) {
+                        this._walletButton.addEventListener('click', this._handleWalletButtonClick);
+                    }
+                })
+            ).then(() => super.initialize(options));
     }
 
     deinitialize(): Promise<void> {
@@ -112,7 +105,7 @@ export default class GooglePayBraintreeButtonStrategy extends CheckoutButtonStra
 
     private _onError(error?: Error): void {
         if (error && error.message !== 'CANCELED') {
-            throw new Error(error.message);
+            throw error;
         }
     }
 }
