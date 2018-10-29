@@ -1,6 +1,7 @@
-import { CustomerInitializeOptions } from '../';
-import { PaymentMethod } from '../../payment';
-import { getGooglePay } from '../../payment/payment-methods.mock';
+
+import PaymentMethod from '../../../payment/payment-method';
+import { getGooglePay } from '../../../payment/payment-methods.mock';
+import { CustomerInitializeOptions } from '../../customer-request-options';
 
 export function getPaymentMethod(): PaymentMethod {
     return {
@@ -19,26 +20,26 @@ export enum Mode {
     Incomplete,
 }
 
-export function getCustomerInitilaizeOptions(mode: Mode = Mode.Full): CustomerInitializeOptions {
-    const methodId = { methodId: 'googlepay' };
+export function getCustomerInitializeOptions(mode: Mode = Mode.Full): CustomerInitializeOptions {
+    const methodId = { methodId: 'googlepaybraintree' };
     const undefinedMethodId = { methodId: undefined };
     const container = { container: 'googlePayCheckoutButton' };
     const invalidContainer = { container: 'invalid_container' };
-    const googlepay = { googlepaybraintree: { ...container } };
-    const googlepayWithInvalidContainer = { googlepaybraintree: { ...invalidContainer } };
+    const googlepayBraintree = { googlepaybraintree: { ...container } };
+    const googlepayBraintreeWithInvalidContainer = { googlepaybraintree: { ...invalidContainer } };
 
     switch (mode) {
         case Mode.Incomplete: {
             return { ...methodId };
         }
         case Mode.UndefinedMethodId: {
-            return { ...undefinedMethodId, ...googlepay };
+            return { ...undefinedMethodId, ...googlepayBraintree };
         }
         case Mode.InvalidContainer: {
-            return { ...methodId, ...googlepayWithInvalidContainer };
+            return { ...methodId, ...googlepayBraintreeWithInvalidContainer };
         }
         default: {
-            return { ...methodId, ...googlepay };
+            return { ...methodId, ...googlepayBraintree };
         }
      }
 }
