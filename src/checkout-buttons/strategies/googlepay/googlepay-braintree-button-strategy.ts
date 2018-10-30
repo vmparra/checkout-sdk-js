@@ -37,10 +37,6 @@ export default class GooglePayBraintreeButtonStrategy extends CheckoutButtonStra
             .then(() => this._googlePayPaymentProcessor.initialize(this._getMethodId())
                 .then(() => {
                     this._walletButton = this._createSignInButton(containerId);
-
-                    if (this._walletButton) {
-                        this._walletButton.addEventListener('click', this._handleWalletButtonClick);
-                    }
                 })
             ).then(() => super.initialize(options));
     }
@@ -67,7 +63,7 @@ export default class GooglePayBraintreeButtonStrategy extends CheckoutButtonStra
             throw new InvalidArgumentError('Unable to create sign-in button without valid container ID.');
         }
 
-        const googlePayButton = this._googlePayPaymentProcessor.createButton(() => {});
+        const googlePayButton = this._googlePayPaymentProcessor.createButton(this._handleWalletButtonClick);
 
         container.appendChild(googlePayButton);
 

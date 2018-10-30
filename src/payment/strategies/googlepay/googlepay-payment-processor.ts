@@ -54,7 +54,7 @@ export default class GooglePayPaymentProcessor {
     }
 
     createButton(
-        onClick: () => void,
+        onClick: (event: Event) => Promise<void>,
         buttonType: ButtonType = ButtonType.Short,
         buttonColor: ButtonColor = ButtonColor.Default
     ): HTMLElement {
@@ -74,28 +74,7 @@ export default class GooglePayPaymentProcessor {
             throw new NotInitializedError(NotInitializedErrorType.PaymentNotInitialized);
         }
 
-        const paymentDataRequest = this._getPaymentDataRequest();
-        const googlePayClient = this._googlePayClient;
-
-        return googlePayClient.isReadyToPay({
-            allowedPaymentMethods: [
-                {
-                    type: paymentDataRequest.allowedPaymentMethods[0].type,
-                    parameters: {
-                        allowedAuthMethods: paymentDataRequest.allowedPaymentMethods[0].parameters.allowedAuthMethods,
-                        allowedCardNetworks: paymentDataRequest.allowedPaymentMethods[0].parameters.allowedCardNetworks,
-                    },
-                },
-            ],
-            apiVersion: paymentDataRequest.apiVersion,
-            apiVersionMinor: paymentDataRequest.apiVersionMinor,
-        }).then(response => {
-            if (response.result) {
-                return googlePayClient.loadPaymentData(paymentDataRequest);
-            }
-
-            throw new NotInitializedError(NotInitializedErrorType.PaymentNotInitialized);
-        });
+        return this._googlePayClient.loadPaymentData(this._getPaymentDataRequest());
     }
 
     handleSuccess(paymentData: GooglePaymentData): Promise<InternalCheckoutSelectors> {
@@ -134,6 +113,26 @@ export default class GooglePayPaymentProcessor {
                 ]).then(([googlePay, paymentDataRequest]) => {
                     this._googlePayClient = this._getGooglePayClient(googlePay, testMode);
                     this._paymentDataRequest = paymentDataRequest;
+
+                    return this._googlePayClient.isReadyToPay({
+                        allowedPaymentMethods: [
+                            {
+                                type: paymentDataRequest.allowedPaymentMethods[0].type,
+                                parameters: {
+                                    allowedAuthMethods: paymentDataRequest.allowedPaymentMethods[0].parameters.allowedAuthMethods,
+                                    allowedCardNetworks: paymentDataRequest.allowedPaymentMethods[0].parameters.allowedCardNetworks,
+                                },
+                            },
+                        ],
+                        apiVersion: paymentDataRequest.apiVersion,
+                        apiVersionMinor: paymentDataRequest.apiVersionMinor,
+                    }).then(response => {
+                        if (response.result) {
+                            Promise.resolve();
+                        }
+
+                        Promise.reject();
+                    });
                 });
             });
     }
