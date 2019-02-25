@@ -46,8 +46,14 @@ import { OffsitePaymentStrategy } from './strategies/offsite';
 import { PaypalExpressPaymentStrategy, PaypalProPaymentStrategy, PaypalScriptLoader } from './strategies/paypal';
 import { SagePayPaymentStrategy } from './strategies/sage-pay';
 import { SquarePaymentStrategy, SquareScriptLoader } from './strategies/square';
+<<<<<<< HEAD
 import { WepayPaymentStrategy, WepayRiskClient } from './strategies/wepay';
 import { ZipPaymentStrategy, ZipScriptLoader } from './strategies/zip';
+=======
+import { StripeScriptLoader } from './strategies/stripe';
+>>>>>>> Stripe 3DS POC
+import StripePaymentStrategy from './strategies/stripe/stripe-payment-strategy';
+import { WepayPaymentStrategy, WepayRiskClient } from './strategies/wepay';
 
 export default function createPaymentStrategyRegistry(
     store: CheckoutStore,
@@ -320,6 +326,18 @@ export default function createPaymentStrategyRegistry(
             orderActionCreator,
             paymentActionCreator,
             formPoster
+            )
+    );
+    
+    registry.register(PaymentStrategyType.STRIPE, () =>
+        new StripePaymentStrategy(
+            store,
+            checkoutActionCreator,
+            paymentMethodActionCreator,
+            paymentStrategyActionCreator,
+            paymentActionCreator,
+            orderActionCreator,
+            new StripeScriptLoader(getScriptLoader())
         )
     );
 
