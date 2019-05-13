@@ -16,18 +16,13 @@ import PaymentStrategy from '../payment-strategy';
 
 import { StripeScriptLoader } from './index';
 
-export default class StripePaymentStrategy implements PaymentStrategy {
+export default class Stripev3PaymentStrategy implements PaymentStrategy {
     private stripeJs: any;
     private cardElement: any;
-    private ccNumber: any;
-    private ccExpiry: any;
-    private ccCvv: any;
 
     constructor(
         private _store: CheckoutStore,
-        private _checkoutActionCreator: CheckoutActionCreator,
         private _paymentMethodActionCreator: PaymentMethodActionCreator,
-        private _paymentStrategyActionCreator: PaymentStrategyActionCreator,
         private _paymentActionCreator: PaymentActionCreator,
         private _orderActionCreator: OrderActionCreator,
         private _stripeScriptLoader: StripeScriptLoader
@@ -46,7 +41,6 @@ export default class StripePaymentStrategy implements PaymentStrategy {
                             fontFamily: 'Inter UI, Open Sans, Segoe UI, sans-serif',
                             fontSize: '16px',
                             fontSmoothing: 'antialiased',
-
                             '::placeholder': {
                                 color: '#CFD7DF',
                             },
@@ -86,6 +80,7 @@ export default class StripePaymentStrategy implements PaymentStrategy {
                     paymentMethod.clientToken, this.cardElement, {}
                 ).then((stripeResponse: any) => {
                     if (stripeResponse.error) {
+                        console.log(stripeResponse);
                         throw new MissingDataError(MissingDataErrorType.MissingCheckout);
                     } else {
                         const paymentPayload = {

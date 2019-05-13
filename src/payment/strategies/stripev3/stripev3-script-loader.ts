@@ -2,9 +2,9 @@ import { ScriptLoader } from '@bigcommerce/script-loader';
 
 import {StandardError} from '../../../common/error/errors';
 
-import { StripeHostWindow } from './stripe';
+import { StripeHostWindow } from './stripev3';
 
-export default class StripeScriptLoader {
+export default class Stripev3ScriptLoader {
     constructor(
         private _scriptLoader: ScriptLoader,
         private _window: StripeHostWindow = window
