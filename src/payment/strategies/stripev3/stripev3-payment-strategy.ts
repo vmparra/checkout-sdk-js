@@ -16,7 +16,7 @@ import PaymentStrategy from '../payment-strategy';
 
 import { StripeScriptLoader } from './index';
 
-export default class Stripev3PaymentStrategy implements PaymentStrategy {
+export default class StripeV3PaymentStrategy implements PaymentStrategy {
     private stripeJs: any;
     private cardElement: any;
 
@@ -29,28 +29,24 @@ export default class Stripev3PaymentStrategy implements PaymentStrategy {
     ) {}
 
     initialize(options?: PaymentInitializeOptions): Promise<InternalCheckoutSelectors> {
+        if (!options) {
+            throw new InvalidArgumentError('Unable to initialize payment because "options" argument is not provided.');
+        }
+
+        const DOMElement = options.stripev3;
+
+        if (!DOMElement) {
+            throw new InvalidArgumentError('Unable to initialize payment because "options" argument is not provided.');
+        }
+
         return this._stripeScriptLoader.load('pk_test_OiGqP4ZezFBTJErOWeMFumjE') // options.initializationData.stripePublishableKey
             .then(stripeJs => {
                 this.stripeJs = stripeJs;
                 const elements = this.stripeJs.elements();
                 this.cardElement = elements.create('card', {
-                    style: {
-                        base: {
-                            color: '#32325D',
-                            fontWeight: 500,
-                            fontFamily: 'Inter UI, Open Sans, Segoe UI, sans-serif',
-                            fontSize: '16px',
-                            fontSmoothing: 'antialiased',
-                            '::placeholder': {
-                                color: '#CFD7DF',
-                            },
-                        },
-                        invalid: {
-                            color: '#E25950',
-                        },
-                    },
+                    style: DOMElement.inputStyles,
                 });
-                this.cardElement.mount('#stripe-card-element');
+                this.cardElement.mount('#' + DOMElement.cardElement);
 
                 return Promise.resolve(this.cardElement);
             });
@@ -58,9 +54,8 @@ export default class Stripev3PaymentStrategy implements PaymentStrategy {
 
     execute(payload: OrderRequestBody, options?: PaymentRequestOptions): Promise<InternalCheckoutSelectors> {
         const { payment, ...order } = payload;
-        const paymentData = payment && payment.paymentData;
 
-        if (!payment || !paymentData) {
+        if (!payment) {
             throw new PaymentArgumentInvalidError(['payment.paymentData']);
         }
 
@@ -80,7 +75,6 @@ export default class Stripev3PaymentStrategy implements PaymentStrategy {
                     paymentMethod.clientToken, this.cardElement, {}
                 ).then((stripeResponse: any) => {
                     if (stripeResponse.error) {
-                        console.log(stripeResponse);
                         throw new MissingDataError(MissingDataErrorType.MissingCheckout);
                     } else {
                         const paymentPayload = {
