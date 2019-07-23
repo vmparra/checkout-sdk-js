@@ -21,16 +21,16 @@ export default class AdyenV2ScriptLoader {
             this._loadStylesheet(`https://checkoutshopper-${configuration.environment}.adyen.com/checkoutshopper/sdk/3.0.0/adyen.css`),
             this._scriptLoader.loadScript(`https://checkoutshopper-${configuration.environment}.adyen.com/checkoutshopper/sdk/3.0.0/adyen.js`),
         ])
-        .then(() => {
-            if (!this._window.AdyenCheckout) {
-                throw new PaymentMethodClientUnavailableError();
-            }
+            .then(() => {
+                if (!this._window.AdyenCheckout) {
+                    throw new PaymentMethodClientUnavailableError();
+                }
 
-            return new this._window.AdyenCheckout(configuration);
-        })
-        .catch(() => {
-            throw new PaymentMethodClientUnavailableError();
-        });
+                return new this._window.AdyenCheckout(configuration);
+            })
+            .catch(() => {
+                throw new PaymentMethodClientUnavailableError();
+            });
 
     }
 

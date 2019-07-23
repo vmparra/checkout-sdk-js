@@ -32,13 +32,13 @@ export function getAdyenInitializeOptions(): PaymentInitializeOptions {
         methodId: 'adyenv2',
         adyenv2: {
             containerId: 'adyen-component-field',
-            threeDS2ContainerId: 'adyen-component-field-3ds',
             options: {
                 hasHolderName: true,
                 styles: {},
                 placeholders: {},
             },
-            threeDS2Options: { threeDS2ChallengeWidgetSize: '01' },
+            on3DSComplete: () => { },
+            on3DSLoading: () => { },
         },
     };
 }
