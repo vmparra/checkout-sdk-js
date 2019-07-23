@@ -1,6 +1,6 @@
 import Omit from '../../../common/types/omit';
 
-import { CreditCardComponentOptions, ThreeDS2ComponentOptions } from './adyenv2';
+import { CreditCardComponentOptions } from './adyenv2';
 
 /**
  * A set of options that are required to initialize the AdyenV2 payment method.
@@ -16,17 +16,16 @@ export default interface AdyenV2PaymentInitializeOptions {
     containerId: string;
 
     /**
-     * The location to insert the Adyen 3DS V2 component.
-     */
-    threeDS2ContainerId: string;
-
-    /**
      * Optional. Overwriting the default options
      */
     options?: Omit<CreditCardComponentOptions, 'onChange'>;
 
     /**
-     * Optional. Contains all three ds 2 options
+     * Specify Three3DSChallenge Widget Size
      */
-    threeDS2Options?: ThreeDS2ComponentOptions;
+    threeDS2ChallengeWidgetSize?: string;
+
+    on3DSLoading?(): void;
+
+    on3DSComplete?(): void;
 }

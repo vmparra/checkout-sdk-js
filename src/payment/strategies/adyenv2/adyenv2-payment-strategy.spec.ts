@@ -16,7 +16,8 @@ import {
 import { getCheckoutStoreState } from '../../../checkout/checkouts.mock';
 import {
     InvalidArgumentError,
-    MissingDataError, NotInitializedError,
+    MissingDataError,
+    NotInitializedError,
     RequestError
 } from '../../../common/error/errors';
 import { getResponse } from '../../../common/http-request/responses.mock';
@@ -272,19 +273,6 @@ describe('AdyenV2PaymentStrategy', () => {
             }));
             let handleOnChange: (state: AdyenCardState) => {};
 
-            options = {
-                methodId: 'adyenv2',
-                adyenv2: {
-                    containerId: 'adyen-component-field',
-                    threeDS2ContainerId: 'adyen-component-field-3ds',
-                    options: {
-                        hasHolderName: true,
-                        styles: {},
-                        placeholders: {},
-                    },
-                    threeDS2Options: { threeDS2ChallengeWidgetSize: '01' },
-                },
-            };
             adyenComponent = {
                 mount: jest.fn(() => {
                     handleOnChange(getValidCardState());
