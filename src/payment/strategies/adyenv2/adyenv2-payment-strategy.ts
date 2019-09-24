@@ -239,7 +239,7 @@ export default class AdyenV2PaymentStrategy implements PaymentStrategy {
                 });
 
             on3DSLoading();
-            threeDS2Component.mount(`#${this._getAdyenV2PaymentInitializeOptions().containerId}-3ds`);
+            threeDS2Component.mount(`#${this._getAdyenV2PaymentInitializeOptions().container3DSId}`);
         });
     }
 
@@ -271,7 +271,7 @@ export default class AdyenV2PaymentStrategy implements PaymentStrategy {
                     onError: (error: AdyenError) => reject(error),
                 });
 
-            threeDS2Component.mount(`#${this._getAdyenV2PaymentInitializeOptions().containerId}-3ds`);
+            threeDS2Component.mount(`#${this._getAdyenV2PaymentInitializeOptions().container3DSId}`);
         });
     }
 

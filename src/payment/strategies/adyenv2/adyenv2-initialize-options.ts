@@ -16,6 +16,11 @@ export default interface AdyenV2PaymentInitializeOptions {
     containerId: string;
 
     /**
+     * The location to insert the Adyen 3DS component.
+     */
+    container3DSId: string;
+
+    /**
      * Optional. Overwriting the default options
      */
     options?: Omit<CreditCardComponentOptions, 'onChange'>;
