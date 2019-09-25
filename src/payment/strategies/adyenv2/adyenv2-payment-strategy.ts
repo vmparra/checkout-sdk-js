@@ -125,7 +125,13 @@ export default class AdyenV2PaymentStrategy implements PaymentStrategy {
                 if (error.body.three_ds_result.result_code === ResultCode.IdentifyShopper) {
                     return this._handle3DS2Fingerprint(error.body.three_ds_result, payment.methodId)
                         .then((payment: Payment) =>
-                            this._store.dispatch(this._paymentActionCreator.submitPayment(payment)))
+                            this._store.dispatch(this._paymentActionCreator.submitPayment({
+                                ...payment,
+                                paymentData: {
+                                    ...payment.paymentData,
+                                    shouldSaveInstrument,
+                                },
+                            })))
                         .catch(error => {
                             if (!(error instanceof RequestError) || !some(error.body.errors, { code: 'three_d_secure_required' })) {
                                 return Promise.reject(error);
@@ -134,7 +140,13 @@ export default class AdyenV2PaymentStrategy implements PaymentStrategy {
                             if (error.body.three_ds_result.result_code === ResultCode.ChallengeShopper) {
                                 return this._handle3DS2Challenge(error.body.three_ds_result, payment.methodId)
                                     .then((payment: Payment) =>
-                                        this._store.dispatch(this._paymentActionCreator.submitPayment(payment))
+                                        this._store.dispatch(this._paymentActionCreator.submitPayment({
+                                            ...payment,
+                                            paymentData: {
+                                                ...payment.paymentData,
+                                                shouldSaveInstrument,
+                                            },
+                                        }))
                                     );
                             }
 
@@ -145,7 +157,13 @@ export default class AdyenV2PaymentStrategy implements PaymentStrategy {
                 if (error.body.three_ds_result.result_code === ResultCode.ChallengeShopper) {
                     return this._handle3DS2Challenge(error.body.three_ds_result, payment.methodId)
                         .then((payment: Payment) =>
-                            this._store.dispatch(this._paymentActionCreator.submitPayment(payment))
+                            this._store.dispatch(this._paymentActionCreator.submitPayment({
+                                ...payment,
+                                paymentData: {
+                                    ...payment.paymentData,
+                                    shouldSaveInstrument,
+                                },
+                            }))
                         );
                 }
 
@@ -250,11 +268,6 @@ export default class AdyenV2PaymentStrategy implements PaymentStrategy {
             if (!this._adyenCheckout) {
                 throw new NotInitializedError(NotInitializedErrorType.PaymentNotInitialized);
             }
-            const { on3DSComplete, on3DSLoading } = this._getAdyenV2PaymentInitializeOptions();
-
-            if (!on3DSComplete || !on3DSLoading) {
-                throw new InvalidArgumentError('"options.adyenv2" argument was not provided during initialization.');
-            }
 
             const threeDS2Component = this._adyenCheckout
                 .create(ThreeDS2ComponentType.ThreeDS2DeviceFingerprint, {
@@ -272,21 +285,14 @@ export default class AdyenV2PaymentStrategy implements PaymentStrategy {
                             },
                         };
 
-                        on3DSComplete();
-
                         resolve(paymentPayload);
                     },
-                    onError: (error: AdyenError) => {
-                        on3DSComplete();
-
-                        reject(error);
-                    },
+                    onError: (error: AdyenError) => reject(error),
                 });
 
             const threeDS2Container = this._getAdyenV2PaymentInitializeOptions().threeDS2ContainerId;
 
             threeDS2Component.mount(`#${threeDS2Container}`);
-            on3DSLoading();
         });
     }
 
