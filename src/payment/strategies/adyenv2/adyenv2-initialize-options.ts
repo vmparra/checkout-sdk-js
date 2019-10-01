@@ -30,7 +30,7 @@ export default interface AdyenV2PaymentInitializeOptions {
      */
     threeDS2ChallengeWidgetSize?: string;
 
-    on3DSLoading?(): void;
+    on3DSLoading?(cancel: () => void): void;
 
     on3DSComplete?(): void;
 }
