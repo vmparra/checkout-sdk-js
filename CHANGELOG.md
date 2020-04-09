@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.59.1-alpha.fb2b4b1db226adbe699c3512cbe66e4c5411fd74](https://github.com/bigcommerce/checkout-sdk-js/compare/v1.59.0...v1.59.1-alpha.fb2b4b1db226adbe699c3512cbe66e4c5411fd74) (2020-04-09)
+
+
+### Features
+
+* **payment:** INT-2410 Add stripe account as configuration ([c0adb1c](https://github.com/bigcommerce/checkout-sdk-js/commit/c0adb1c))
+* **payment:** INT-2410 Feedback addressed ([fb2b4b1](https://github.com/bigcommerce/checkout-sdk-js/commit/fb2b4b1))
+
 ## [1.59.0](https://github.com/bigcommerce/checkout-sdk-js/compare/v1.58.0...v1.59.0) (2020-04-03)
 
 
