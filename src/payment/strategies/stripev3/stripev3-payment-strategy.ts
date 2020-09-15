@@ -18,7 +18,7 @@ import PaymentMethodActionCreator from '../../payment-method-action-creator';
 import { PaymentInitializeOptions, PaymentRequestOptions } from '../../payment-request-options';
 import PaymentStrategy from '../payment-strategy';
 
-import { PaymentIntent, StripeAdditionalAction, StripeAdditionalActionError, StripeAddress, StripeBillingDetails, StripeConfirmCardPaymentData, StripeConfirmIdealPaymentData, StripeConfirmPaymentData, StripeConfirmSepaPaymentData, StripeElement, StripeElements, StripeElementType, StripeError, StripePaymentMethodType, StripeShippingAddress, StripeV3Client } from './stripev3';
+import isIndividualCardElementOptions, { PaymentIntent, StripeAdditionalAction, StripeAdditionalActionError, StripeAddress, StripeBillingDetails, StripeCardElements, StripeConfirmCardPaymentData, StripeConfirmIdealPaymentData, StripeConfirmPaymentData, StripeConfirmSepaPaymentData, StripeElement, StripeElements, StripeElementOptions, StripeElementType, StripeError, StripePaymentMethodType, StripeShippingAddress, StripeV3Client } from './stripev3';
 import StripeV3PaymentInitializeOptions from './stripev3-initialize-options';
 import StripeV3ScriptLoader from './stripev3-script-loader';
 
@@ -27,6 +27,8 @@ export default class StripeV3PaymentStrategy implements PaymentStrategy {
     private _stripeV3Client?: StripeV3Client;
     private _stripeElements?: StripeElements;
     private _stripeElement?: StripeElement;
+    private _stripeCardElements?: StripeCardElements;
+    private _individualPaymentComponents?: boolean;
 
     constructor(
         private _store: CheckoutStore,
@@ -39,6 +41,7 @@ export default class StripeV3PaymentStrategy implements PaymentStrategy {
     ) {}
 
     async initialize(options: PaymentInitializeOptions): Promise<InternalCheckoutSelectors> {
+        this._individualPaymentComponents = true;
         this._initializeOptions = options;
         this._stripeV3Client = await this._loadStripeJs();
         this._stripeElement = await this._mountElement(this._getInitializeOptions().methodId);
@@ -226,6 +229,14 @@ export default class StripeV3PaymentStrategy implements PaymentStrategy {
         return this._stripeElement;
     }
 
+    private _getStripeCardElements(): StripeCardElements {
+        if (!this._stripeCardElements) {
+            throw new NotInitializedError(NotInitializedErrorType.PaymentNotInitialized);
+        }
+
+        return this._stripeCardElements;
+    }
+
     private _getStripeJs(): StripeV3Client {
         if (!this._stripeV3Client) {
             throw new NotInitializedError(NotInitializedErrorType.PaymentNotInitialized);
@@ -260,9 +271,100 @@ export default class StripeV3PaymentStrategy implements PaymentStrategy {
 
             switch (stripeElementType) {
                 case StripeElementType.CreditCard:
+                    if (this._individualPaymentComponents) {
+                        const paymentForm = document.getElementById(this._getStripeInitializeOptions().containerId);
+
+                        let cardNumberElement;
+                        let cardExpiryElement;
+                        let cardCvcElement;
+
+                        if (paymentForm && isIndividualCardElementOptions(options)) {
+                            const { cardNumberElementOptions, cardExpiryElementOptions, cardCvcElementOptions } = options;
+
+                            cardNumberElement = this._stripeElements.getElement(StripeElementType.CardNumber) || this._stripeElements.create(StripeElementType.CardNumber, cardNumberElementOptions.options);
+                            cardExpiryElement = this._stripeElements.getElement(StripeElementType.CardExpiry) || this._stripeElements.create(StripeElementType.CardExpiry, cardExpiryElementOptions.options);
+                            cardCvcElement = this._stripeElements.getElement(StripeElementType.CardCvc) || this._stripeElements.create(StripeElementType.CardCvc, cardCvcElementOptions.options);
+
+                            this._stripeCardElements = [cardNumberElement, cardExpiryElement, cardCvcElement];
+                            stripeElement = this._stripeCardElements[0];
+
+                            try {
+                                cardNumberElement.mount(cardNumberElementOptions.containerId);
+                                cardExpiryElement.mount(cardExpiryElementOptions.containerId);
+                                cardCvcElement.mount(cardCvcElementOptions.containerId);
+                            } catch (error) {
+                                reject(new InvalidArgumentError('Unable to mount Stripe component without valid container ID.'));
+                            }
+                        } /* else {
+                            const cardNumberElementType = 'cardNumber' as StripeElementType;
+                            const cardExpiryElementType = 'cardExpiry' as StripeElementType;
+                            const cardCvcElementType = 'cardCvc' as StripeElementType;
+
+                            cardNumberElement = this._stripeElements.getElement(cardNumberElementType) || this._stripeElements.create(cardNumberElementType, options.cardNumberElementOptions);
+                            cardExpiryElement = this._stripeElements.getElement(cardExpiryElementType) || this._stripeElements.create(cardExpiryElementType, options.cardExpiryElementOptions);
+                            cardCvcElement = this._stripeElements.getElement(cardCvcElementType) || this._stripeElements.create(cardCvcElementType, options.cardCvcElementOptions);
+
+                            const cardNumberElementWrapper = document.createElement('div');
+                            cardNumberElementWrapper.id = 'stripe-card-number';
+
+                            const cardExpiryElementWrapper = document.createElement('div');
+                            cardExpiryElementWrapper.id = 'stripe-card-expiry';
+
+                            const cardCvcElementWrapper = document.createElement('div');
+                            cardCvcElementWrapper.id = 'stripe-card-cvc';
+
+                            const cardZipElementWrapper = document.createElement('div');
+                            cardZipElementWrapper.id = 'stripe-card-zip';
+
+                            const postalCodeCardField = document.createElement('input');
+                            postalCodeCardField.id = 'stripe-card-zip-input';
+
+                            // create styles object
+                            const style = {
+                                '::placeholder': {
+                                    color: '#87BBFD',
+                                },
+                            };
+
+                            // apply styles to the field
+                            Object.assign(postalCodeCardField.style, style);
+
+                            cardNumberElementWrapper.classList.add('dynamic-form-field');
+                            cardExpiryElementWrapper.classList.add('dynamic-form-field');
+                            cardCvcElementWrapper.classList.add('dynamic-form-field');
+                            cardZipElementWrapper.classList.add('dynamic-form-field');
+
+                            postalCodeCardField.placeholder = 'ZIP';
+                            postalCodeCardField.style.fontFamily = 'sans-serif';
+
+                            paymentForm = document.getElementById(containerId);
+
+                            paymentForm?.appendChild(cardNumberElementWrapper);
+                            paymentForm?.appendChild(cardExpiryElementWrapper);
+                            paymentForm?.appendChild(cardCvcElementWrapper);
+                            paymentForm?.appendChild(cardZipElementWrapper);
+
+                            cardZipElementWrapper.appendChild(postalCodeCardField);
+
+                            options.cardNumberElementOptions.classes?.base?.split(' ').forEach((className: string) => {
+                                postalCodeCardField.classList.add(className);
+                            });
+                        }*/
+
+                    } else {
+                        stripeElement = this._stripeElements.getElement(stripeElementType) || this._stripeElements.create(stripeElementType, options as StripeElementOptions);
+
+                        try {
+                            stripeElement.mount(`#${containerId}`);
+                        } catch (error) {
+                            reject(new InvalidArgumentError('Unable to mount Stripe component without valid container ID.'));
+                        }
+                    }
+
+                    break;
                 case StripeElementType.iDEAL:
                 case StripeElementType.Sepa:
-                    stripeElement = this._stripeElements.getElement(stripeElementType) || this._stripeElements.create(stripeElementType, options);
+                    stripeElement = this._stripeElements.getElement(stripeElementType) || this._stripeElements.create(stripeElementType, options as StripeElementOptions);
 
                     try {
                         stripeElement.mount(`#${containerId}`);
@@ -332,7 +434,7 @@ export default class StripeV3PaymentStrategy implements PaymentStrategy {
 
         result = {
             payment_method: {
-                [element]: this._getStripeElement(),
+                [element]: element === StripePaymentMethodType.CreditCard && this._individualPaymentComponents ? this._getStripeCardElements()[0] : this._getStripeElement(),
                 billing_details: this._mapStripeBillingDetails(billingAddress, customer),
             },
         };
