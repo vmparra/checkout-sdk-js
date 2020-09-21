@@ -289,9 +289,9 @@ export default class StripeV3PaymentStrategy implements PaymentStrategy {
                             stripeElement = this._stripeCardElements[0];
 
                             try {
-                                cardNumberElement.mount(cardNumberElementOptions.containerId);
-                                cardExpiryElement.mount(cardExpiryElementOptions.containerId);
-                                cardCvcElement.mount(cardCvcElementOptions.containerId);
+                                cardNumberElement.mount(`#${cardNumberElementOptions.containerId}`);
+                                cardExpiryElement.mount(`#${cardExpiryElementOptions.containerId}`);
+                                cardCvcElement.mount(`#${cardCvcElementOptions.containerId}`);
                             } catch (error) {
                                 reject(new InvalidArgumentError('Unable to mount Stripe component without valid container ID.'));
                             }
@@ -402,7 +402,12 @@ export default class StripeV3PaymentStrategy implements PaymentStrategy {
     private _mapStripeBillingDetails(billingAddress?: BillingAddress, customer?: Customer): StripeBillingDetails {
         const { firstName, lastName } = billingAddress || customer || { firstName: 'Guest', lastName: '' };
         const name = `${firstName} ${lastName}`.trim();
-
+        const postalCode = document.getElementById('stripe-postal-code') ? (document.getElementById('stripe-postal-code') as HTMLInputElement).value : '';
+        
+        if(postalCode && billingAddress ) {
+            billingAddress = {...billingAddress, postalCode}
+        }
+        
         const address = {
             address:  this._mapStripeAddress(billingAddress),
         };
